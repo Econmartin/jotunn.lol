@@ -1,5 +1,7 @@
+// In dev, use Vite proxy (/testnet-graphql). In prod, use Sui directly (Pages has no proxy → 405 on POST).
 const GRAPHQL_ENDPOINT =
-  import.meta.env.VITE_SUI_GRAPHQL_ENDPOINT || "/testnet-graphql";
+  import.meta.env.VITE_SUI_GRAPHQL_ENDPOINT ||
+  (import.meta.env.DEV ? "/testnet-graphql" : "https://graphql.testnet.sui.io/graphql");
 
 export async function graphqlQuery<T>(
   query: string,

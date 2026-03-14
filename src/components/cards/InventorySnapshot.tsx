@@ -10,7 +10,7 @@
  *
  * Data source: SSU object → dynamic fields → inventory items. Enriched via
  *              getGameTypeInfo() from Datahub /v2/types/{id}
- * Triggers: Poll every 30s
+ * Triggers: Poll every 5 minutes
  */
 
 import { GlassCard } from "../GlassCard";
