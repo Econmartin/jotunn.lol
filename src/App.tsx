@@ -616,7 +616,7 @@ export default function App() {
             color: "hsla(210, 20%, 70%, 0.75)",
             maxWidth: 520,
           }}>
-            Live dashboard for your EVE Frontier character on the Stillness testnet. On-chain stats, assemblies, transactions, and events—all in one place. Data polls every 30s from Sui.
+            Live dashboard for your EVE Frontier character on the Stillness testnet. On-chain stats, assemblies, transactions, and events—all in one place. Data polls every 5 minutes from Sui.
           </p>
         </div>
         <div style={{

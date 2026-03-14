@@ -26,7 +26,7 @@ export function ChangeLog({ changelog, onClear }: Props) {
 
       {changelog.length === 0 && (
         <p className="text-muted">
-          No changes detected yet. The tracker polls every 30s.
+          No changes detected yet. The tracker polls every 5 minutes.
         </p>
       )}
 
