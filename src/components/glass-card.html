@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Glass Card</title>
+<link href="https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  /* ═══════════════════════════════════════════
+     COLOUR VARIABLES — change these to re-theme
+     ═══════════════════════════════════════════ */
+  :root {
+    /* Primary accent */
+    --accent-h: 25;          /* hue */
+    --accent-s: 100%;        /* saturation */
+    --accent-l: 55%;         /* lightness */
+
+    /* Derived accent shades */
+    --accent:        hsl(var(--accent-h), var(--accent-s), var(--accent-l));
+    --accent-bright: hsl(var(--accent-h), var(--accent-s), 65%);
+    --accent-dim:    hsl(var(--accent-h), var(--accent-s), 35%);
+    --accent-glow:   hsl(var(--accent-h), var(--accent-s), 50%);
+
+    /* Background / canvas */
+    --bg-deep:  hsl(var(--accent-h), 40%, 4%);
+    --bg-mid:   hsl(var(--accent-h), 30%, 8%);
+
+    /* Glass surface tints (low-opacity versions of accent) */
+    --glass-tint-1: hsla(var(--accent-h), 60%, 20%, 0.25);
+    --glass-tint-2: hsla(var(--accent-h), 50%, 30%, 0.12);
+    --glass-tint-3: hsla(var(--accent-h), 80%, 50%, 0.06);
+
+    /* Border / edge highlights */
+    --border-bright: hsla(var(--accent-h), 60%, 60%, 0.35);
+    --border-dim:    hsla(var(--accent-h), 40%, 40%, 0.15);
+    --border-inner:  hsla(var(--accent-h), 50%, 55%, 0.25);
+
+    /* Text */
+    --text-primary:   hsla(0, 0%, 100%, 0.92);
+    --text-secondary: hsla(var(--accent-h), 20%, 75%, 0.7);
+    --text-label:     hsla(var(--accent-h), 15%, 65%, 0.55);
+
+    /* Sizing */
+    --card-size: 320px;
+    --outer-radius: 42px;
+    --inner-radius: 30px;
+    --outer-padding: 14px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 40px;
+    flex-wrap: wrap;
+    padding: 40px;
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', sans-serif;
+    background: var(--bg-deep);
+    background-image:
+      radial-gradient(ellipse 80% 60% at 50% 120%, hsla(var(--accent-h), 60%, 15%, 0.5), transparent),
+      radial-gradient(ellipse 60% 50% at 80% 0%, hsla(var(--accent-h), 50%, 12%, 0.4), transparent);
+  }
+
+  /* ═══════════════════════════════
+     OUTER SHELL — the fat padded bezel
+     ═══════════════════════════════ */
+  .card-outer {
+    width: var(--card-size);
+    height: var(--card-size);
+    padding: var(--outer-padding);
+    border-radius: var(--outer-radius);
+
+    /* Outer glass fill — dark, slightly tinted */
+    background:
+      linear-gradient(
+        160deg,
+        hsla(var(--accent-h), 30%, 18%, 0.45) 0%,
+        hsla(var(--accent-h), 25%, 8%, 0.55) 50%,
+        hsla(var(--accent-h), 35%, 12%, 0.40) 100%
+      );
+    backdrop-filter: blur(40px) saturate(1.4);
+    -webkit-backdrop-filter: blur(40px) saturate(1.4);
+
+    /* Outer border — subtle bright edge top-left, darker bottom-right */
+    border: 1.2px solid;
+    border-image: none;
+    border-color: var(--border-dim);
+    border-top-color: var(--border-bright);
+    border-left-color: hsla(var(--accent-h), 50%, 55%, 0.22);
+
+    /* Deep shadow like the reference */
+    box-shadow:
+      0 2px 4px rgba(0,0,0,0.3),
+      0 8px 24px rgba(0,0,0,0.4),
+      0 20px 60px rgba(0,0,0,0.35),
+      /* Inner soft glow at top edge */
+      inset 0 1px 1px hsla(var(--accent-h), 50%, 60%, 0.12),
+      inset 0 -1px 1px rgba(0,0,0,0.2);
+
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* Subtle top-edge specular highlight on the outer shell */
+  .card-outer::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 10%; right: 10%;
+    height: 1px;
+    background: linear-gradient(90deg,
+      transparent,
+      hsla(var(--accent-h), 70%, 70%, 0.4),
+      hsla(var(--accent-h), 90%, 80%, 0.6),
+      hsla(var(--accent-h), 70%, 70%, 0.4),
+      transparent
+    );
+    border-radius: 50%;
+  }
+
+  /* ═══════════════════════════════
+     INNER CARD — the content surface
+     ═══════════════════════════════ */
+  .card-inner {
+    width: 100%;
+    height: 100%;
+    border-radius: var(--inner-radius);
+    padding: 22px;
+    position: relative;
+    overflow: hidden;
+
+    /* Inner glass — slightly lighter, more translucent */
+    background:
+      linear-gradient(
+        170deg,
+        hsla(var(--accent-h), 35%, 22%, 0.4) 0%,
+        hsla(var(--accent-h), 30%, 12%, 0.5) 40%,
+        hsla(var(--accent-h), 40%, 15%, 0.35) 100%
+      );
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+
+    /* Inner card border — the reference shows a clear 1px bright edge */
+    border: 1px solid;
+    border-color: var(--border-dim);
+    border-top-color: var(--border-inner);
+    border-left-color: hsla(var(--accent-h), 40%, 50%, 0.18);
+
+    box-shadow:
+      inset 0 1px 2px hsla(var(--accent-h), 50%, 60%, 0.1),
+      inset 0 -2px 6px rgba(0,0,0,0.15),
+      0 1px 3px rgba(0,0,0,0.2);
+  }
+
+  /* Bottom accent glow — the reference cards have a coloured wash at the bottom */
+  .card-inner::after {
+    content: '';
+    position: absolute;
+    bottom: -30%;
+    left: -10%;
+    right: -10%;
+    height: 70%;
+    background: radial-gradient(
+      ellipse 90% 60% at 50% 100%,
+      hsla(var(--accent-h), var(--accent-s), 45%, 0.18),
+      hsla(var(--accent-h), var(--accent-s), 35%, 0.06) 50%,
+      transparent 80%
+    );
+    pointer-events: none;
+  }
+
+  /* ═══════════════════════════════
+     SAMPLE CONTENT (placeholder UI)
+     ═══════════════════════════════ */
+  .card-content {
+    position: relative;
+    z-index: 1;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+
+  .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .card-header-left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .card-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: hsla(var(--accent-h), 50%, 30%, 0.5);
+    border: 1px solid hsla(var(--accent-h), 50%, 50%, 0.25);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    backdrop-filter: blur(8px);
+  }
+
+  .card-label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-label);
+  }
+
+  .card-header-value {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-secondary);
+  }
+
+  .card-header-right {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 2px;
+  }
+
+  .card-body {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .card-metric {
+    font-size: 56px;
+    font-weight: 300;
+    color: var(--text-primary);
+    letter-spacing: -1px;
+  }
+
+  .card-metric span {
+    font-size: 22px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    margin-left: 4px;
+  }
+
+  .card-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+  }
+
+  .card-footer-stats {
+    display: flex;
+    gap: 20px;
+  }
+
+  .stat-item {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .stat-label {
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-label);
+  }
+
+  .stat-value {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-secondary);
+  }
+
+  /* Inset UI element — like the sub-panels in the reference */
+  .inset-panel {
+    background: hsla(var(--accent-h), 30%, 10%, 0.5);
+    border: 1px solid hsla(var(--accent-h), 40%, 35%, 0.15);
+    border-radius: 14px;
+    padding: 14px;
+    box-shadow:
+      inset 0 1px 3px rgba(0,0,0,0.25),
+      inset 0 0 8px hsla(var(--accent-h), 30%, 10%, 0.3);
+  }
+
+  /* Accent bar — like the progress bars in the reference */
+  .accent-bar {
+    height: 8px;
+    border-radius: 4px;
+    background: linear-gradient(90deg,
+      var(--accent),
+      var(--accent-bright)
+    );
+    box-shadow: 0 0 12px hsla(var(--accent-h), var(--accent-s), 55%, 0.4);
+    width: 65%;
+  }
+
+  /* Round button — like the +/- buttons */
+  .round-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: 1px solid hsla(var(--accent-h), 40%, 40%, 0.25);
+    background: hsla(var(--accent-h), 30%, 15%, 0.5);
+    color: var(--text-secondary);
+    font-size: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow:
+      inset 0 1px 2px hsla(var(--accent-h), 40%, 50%, 0.1),
+      0 2px 6px rgba(0,0,0,0.3);
+    transition: all 0.2s ease;
+  }
+
+  .round-btn:hover {
+    border-color: hsla(var(--accent-h), 50%, 55%, 0.4);
+    background: hsla(var(--accent-h), 35%, 20%, 0.6);
+    box-shadow:
+      inset 0 1px 2px hsla(var(--accent-h), 40%, 50%, 0.15),
+      0 2px 8px hsla(var(--accent-h), 60%, 40%, 0.2);
+  }
+
+  /* ═══════════════════════════════
+     COLOUR SWATCHES — for live testing
+     ═══════════════════════════════ */
+  .swatch-bar {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 8px;
+    padding: 8px 14px;
+    border-radius: 20px;
+    background: rgba(0,0,0,0.6);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255,255,255,0.08);
+    z-index: 100;
+  }
+
+  .swatch {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    border: 2px solid rgba(255,255,255,0.15);
+    cursor: pointer;
+    transition: all 0.25s ease;
+  }
+
+  .swatch:hover, .swatch.active {
+    border-color: rgba(255,255,255,0.6);
+    transform: scale(1.15);
+  }
+</style>
+</head>
+<body>
+
+<!-- ════════ CARD 1 — Metric style ════════ -->
+<div class="card-outer">
+  <div class="card-inner">
+    <div class="card-content">
+      <div class="card-header">
+        <div class="card-header-left">
+          <div class="card-icon">🔥</div>
+          <div>
+            <div class="card-label">Calories</div>
+            <div class="card-header-value">1,840 kcal</div>
+          </div>
+        </div>
+        <div class="card-header-right">
+          <div class="card-label">Today</div>
+          <div class="card-header-value">15:24</div>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="card-metric">72<span>%</span></div>
+      </div>
+      <div class="card-footer">
+        <div class="card-footer-stats">
+          <div class="stat-item">
+            <div class="stat-label">Burned</div>
+            <div class="stat-value">1,324</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-label">Target</div>
+            <div class="stat-value">1,840</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-label">Remaining</div>
+            <div class="stat-value">516</div>
+          </div>
+        </div>
+        <div class="round-btn">+</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════ CARD 2 — Inset panel style ════════ -->
+<div class="card-outer">
+  <div class="card-inner">
+    <div class="card-content">
+      <div class="card-header">
+        <div class="card-header-left">
+          <div class="card-icon">🏃</div>
+          <div>
+            <div class="card-label">Activity</div>
+            <div class="card-header-value">8.2 km</div>
+          </div>
+        </div>
+        <div class="card-header-right">
+          <div class="card-label">This week</div>
+          <div class="card-header-value">Day 4</div>
+        </div>
+      </div>
+
+      <div class="inset-panel" style="margin-top:16px; flex:1; display:flex; flex-direction:column; justify-content:center; gap:14px;">
+        <div style="display:flex; justify-content:space-between; align-items:flex-end; height:80px; padding:0 4px;">
+          <div style="width:14%; background:linear-gradient(to top, var(--accent-dim), var(--accent)); border-radius:4px; height:40%;"></div>
+          <div style="width:14%; background:linear-gradient(to top, var(--accent-dim), var(--accent)); border-radius:4px; height:70%;"></div>
+          <div style="width:14%; background:linear-gradient(to top, var(--accent-dim), var(--accent-bright)); border-radius:4px; height:55%;"></div>
+          <div style="width:14%; background:linear-gradient(to top, var(--accent-dim), var(--accent-bright)); border-radius:4px; height:90%;"></div>
+          <div style="width:14%; background:linear-gradient(to top, var(--accent-dim), var(--accent)); border-radius:4px; height:35%;"></div>
+          <div style="width:14%; background:linear-gradient(to top, hsla(var(--accent-h),30%,25%,0.4), hsla(var(--accent-h),30%,30%,0.5)); border-radius:4px; height:20%; border:1px dashed hsla(var(--accent-h),40%,40%,0.3);"></div>
+        </div>
+        <div style="display:flex; justify-content:space-between; padding:0 2px;">
+          <span class="stat-label">Mon</span>
+          <span class="stat-label">Tue</span>
+          <span class="stat-label">Wed</span>
+          <span class="stat-label">Thu</span>
+          <span class="stat-label">Fri</span>
+          <span class="stat-label" style="opacity:0.35">Sat</span>
+        </div>
+      </div>
+
+      <div class="card-footer" style="margin-top:14px;">
+        <div class="card-footer-stats">
+          <div class="stat-item">
+            <div class="stat-label">Distance</div>
+            <div class="stat-value">8.2 km</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-label">Time</div>
+            <div class="stat-value">47:30</div>
+          </div>
+        </div>
+        <div class="accent-bar"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════ COLOUR PICKER ════════ -->
+<div class="swatch-bar">
+  <div class="swatch active" style="background:hsl(25,100%,55%)"  data-h="25"  data-s="100%" data-l="55%" title="Orange"></div>
+  <div class="swatch" style="background:hsl(210,100%,55%)" data-h="210" data-s="100%" data-l="55%" title="Blue (original)"></div>
+  <div class="swatch" style="background:hsl(150,80%,50%)"  data-h="150" data-s="80%"  data-l="50%" title="Green"></div>
+  <div class="swatch" style="background:hsl(280,80%,60%)"  data-h="280" data-s="80%"  data-l="60%" title="Purple"></div>
+  <div class="swatch" style="background:hsl(350,90%,55%)"  data-h="350" data-s="90%"  data-l="55%" title="Red"></div>
+  <div class="swatch" style="background:hsl(50,100%,55%)"  data-h="50"  data-s="100%" data-l="55%" title="Gold"></div>
+  <div class="swatch" style="background:hsl(180,80%,50%)"  data-h="180" data-s="80%"  data-l="50%" title="Cyan"></div>
+</div>
+
+<script>
+  document.querySelectorAll('.swatch').forEach(s => {
+    s.addEventListener('click', () => {
+      document.querySelectorAll('.swatch').forEach(x => x.classList.remove('active'));
+      s.classList.add('active');
+      const r = document.documentElement.style;
+      r.setProperty('--accent-h', s.dataset.h);
+      r.setProperty('--accent-s', s.dataset.s);
+      r.setProperty('--accent-l', s.dataset.l);
+    });
+  });
+</script>
+</body>
+</html>
