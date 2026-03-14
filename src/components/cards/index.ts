@@ -1,0 +1,36 @@
+// Auto-generated barrel — exports all 34 dashboard card stubs.
+
+export { CharacterHero }      from "./CharacterHero";
+export { TribeDetail }        from "./TribeDetail";
+export { OwnedObjects }       from "./OwnedObjects";
+export { AssemblyStatus }     from "./AssemblyStatus";
+export { TxHistory }          from "./TxHistory";
+export { FuelGauge }          from "./FuelGauge";
+export { InventorySnapshot }  from "./InventorySnapshot";
+export { SolarSystemMap }     from "./SolarSystemMap";
+export { GateNetwork }        from "./GateNetwork";
+export { RivalComparison }    from "./RivalComparison";
+export { ExtensionRegistry }  from "./ExtensionRegistry";
+export { NetworkNodeStatus }  from "./NetworkNodeStatus";
+export { DynamicFields }      from "./DynamicFields";
+export { EventFeed }          from "./EventFeed";
+export { ChangeLog }          from "./ChangeLog";
+export { KillCounter }        from "./KillCounter";
+export { ItemLedger }         from "./ItemLedger";
+export { FuelTrend }          from "./FuelTrend";
+export { NameGraveyard }      from "./NameGraveyard";
+export { Achievements }       from "./Achievements";
+export { InsuranceCompany }   from "./InsuranceCompany";
+export { Newspaper }          from "./Newspaper";
+export { SpotifyPlaylist }    from "./SpotifyPlaylist";
+export { DeathCertificates }  from "./DeathCertificates";
+export { PredictionPool }     from "./PredictionPool";
+export { DominoTracker }      from "./DominoTracker";
+export { TimeLapseReplay }    from "./TimeLapseReplay";
+export { WebhookBus }         from "./WebhookBus";
+export { SocialPosts }        from "./SocialPosts";
+export { MemeGenerator }      from "./MemeGenerator";
+export { CommentaryBot }      from "./CommentaryBot";
+export { PhysicalReactions }  from "./PhysicalReactions";
+export { AmbientSoundscape }  from "./AmbientSoundscape";
+export { HardwareStatus }     from "./HardwareStatus";
