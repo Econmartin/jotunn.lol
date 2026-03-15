@@ -29,7 +29,7 @@ export function VersionBump() {
   const { currentVersion, previousVersion, bumped, history, totalBumps } = useVersionBump();
   const isExpanded = useContext(CardExpandedContext);
 
-  const accentColor = bumped ? "#c084fc" : "#86efac";
+  const accentColor = bumped ? "#ffb16d" : "#82220c";
 
   return (
     <GlassCard accentH={MARTIAN_H} style={{ height: "100%", width: "100%" }}>

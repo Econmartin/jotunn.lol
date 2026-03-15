@@ -10,6 +10,7 @@
 
 import { useContext } from "react";
 import { GlassCard, CardExpandedContext } from "../../components/GlassCard";
+import { SvgIcon } from "../../components/SvgIcon";
 import { MARTIAN_H } from "../../lib/constants";
 const PLAYLIST_ID =
   (import.meta.env.VITE_SPOTIFY_PLAYLIST_ID as string | undefined) ??
@@ -26,10 +27,7 @@ export function SpotifyPlaylist() {
 
         {/* Header */}
         <div className={`flex items-center gap-2 shrink-0 ${isExpanded ? "mb-3" : "mb-2"}`}>
-          <div className="w-8 h-8 rounded-full flex items-center justify-center text-sm"
-               style={{ background: `hsla(${MARTIAN_H},50%,28%,0.5)`, border: `1px solid hsla(${MARTIAN_H},50%,50%,0.3)` }}>
-            🎵
-          </div>
+          <SvgIcon src="/assets/music.svg" size={22} />
           <div>
             <div className="text-xs font-semibold tracking-widest uppercase"
                  style={{ color: `hsla(${MARTIAN_H},20%,65%,0.55)` }}>
