@@ -31,5 +31,8 @@ yarn-error.log*
 # Vite
 vite.config.ts.timestamp-*
 
+# Wrangler (local dev state / build cache)
+.wrangler/
+
 # Optional (uncomment if you use)
 # .cursor/
