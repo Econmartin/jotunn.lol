@@ -33,3 +33,7 @@ vite.config.ts.timestamp-*
 
 # Optional (uncomment if you use)
 # .cursor/
+
+# Purged assets
+reference.png
+cards.md
