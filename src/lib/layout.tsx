@@ -17,6 +17,7 @@ import { CharityDonate }    from "../cards/CharityDonate";
 import { PostcardSender }   from "../cards/PostcardSender";
 import { CommentaryBot }    from "../cards/CommentaryBot";
 import { CardStub }         from "../cards/CardStub";
+import { SvgIcon }          from "../components/SvgIcon";
 
 export interface CardDef {
   id: string;
@@ -78,7 +79,7 @@ export const SECTIONS: Section[] = [
   {
     type: "row",
     cards: [
-      { id: "hub",  baseFlex: 1, component: <CardStub label="Hub"  icon="🔗" description="Coming soon" /> },
+      { id: "hub",  baseFlex: 1, component: <CardStub label="Hub"  icon={<SvgIcon src="/assets/chain.svg" size={28} />} description="Coming soon" /> },
       { id: "slot", baseFlex: 1, component: <CardStub label="Slot" icon="🎰" description="Coming soon" /> },
     ],
   },

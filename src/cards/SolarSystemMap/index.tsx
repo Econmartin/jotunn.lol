@@ -15,6 +15,7 @@
 import { useState, useEffect, useContext } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { GlassCard, CardExpandedContext } from "../../components/GlassCard";
+import { SvgIcon } from "../../components/SvgIcon";
 import { useKillmails } from "../../hooks/useKillmails";
 import { SvgIcon } from "../../components/SvgIcon";
 import { getSolarSystemInfo } from "../../lib/datahub";

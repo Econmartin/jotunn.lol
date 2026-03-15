@@ -11,6 +11,7 @@ import { useMemo } from "react";
 import { useCharacter } from "../../hooks/useCharacter";
 import { useObjectWithDynamicFields } from "../../hooks/useObjectWithDynamicFields";
 import { GlassCard } from "../../components/GlassCard";
+import { SvgIcon } from "../../components/SvgIcon";
 import { cn } from "../../lib/utils";
 import { MARTIAN_H } from "../../lib/constants";
 import { SvgIcon } from "../../components/SvgIcon";

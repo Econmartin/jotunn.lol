@@ -10,6 +10,7 @@
 
 import { useContext } from "react";
 import { GlassCard, CardExpandedContext } from "../../components/GlassCard";
+import { SvgIcon } from "../../components/SvgIcon";
 import { useFuelTrend, type FuelReading } from "./hook";
 import { MARTIAN_H } from "../../lib/constants";
 import { SvgIcon } from "../../components/SvgIcon";

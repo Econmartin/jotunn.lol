@@ -11,6 +11,7 @@
 
 import { useState, useEffect, useContext } from "react";
 import { GlassCard, CardExpandedContext } from "../../components/GlassCard";
+import { SvgIcon } from "../../components/SvgIcon";
 import { useKillmails } from "../../hooks/useKillmails";
 import { useCharacter } from "../../hooks/useCharacter";
 import { useTransactions } from "../../hooks/useTransactions";

@@ -4,6 +4,7 @@
  */
 
 import { GlassCard } from "../../components/GlassCard";
+import { SvgIcon } from "../../components/SvgIcon";
 import { MARTIAN_H } from "../../lib/constants";
 import { SvgIcon } from "../../components/SvgIcon";
 
