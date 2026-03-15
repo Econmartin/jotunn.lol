@@ -6,8 +6,8 @@ const SUI_GRAPHQL =
   "https://graphql.testnet.sui.io/graphql";
 const WORLD_PACKAGE =
   "0x28b497559d65ab320d9da4613bf2498d5946b2c0ae3597ccfda3072ce127448c";
-const WALLET =
-  "0x80df500f7eb9873531bd0cdc684f1dd7441a846977f560ac2a2f081ec36b261b";
+const CHARACTER_ID =
+  "0xf2f27890d53a82558bb0a4c69680e77aeac478c851521f532077bbd0c611094a";
 const LOCATION_REGISTRY =
   "0xc87dca9c6b2c95e4a0cbe1f8f9eeff50171123f176fbfdc7b49eef4824fc596b";
 const JOTUNN_ITEM_ID = "2112077867";
@@ -36,13 +36,10 @@ async function gql<T = unknown>(
 
 // ── GraphQL queries ───────────────────────────────────────────────────────────
 
-const OWNED_OBJECTS_Q = `
-  query OwnedObjects($owner: SuiAddress!, $first: Int) {
-    objects(filter: { owner: $owner }, first: $first) {
-      nodes {
-        address
-        asMoveObject { contents { type { repr } } }
-      }
+const OBJECT_JSON_Q = `
+  query GetObject($address: SuiAddress!) {
+    object(address: $address) {
+      asMoveObject { contents { json } }
     }
   }
 `;
@@ -63,47 +60,37 @@ const DYNAMIC_FIELDS_Q = `
 `;
 
 // ── Fuel extraction ───────────────────────────────────────────────────────────
-// Mirrors FuelGauge/index.tsx logic exactly.
+// 1. Fetch character object → metadata.assembly_id = NetworkNode address
+// 2. Fetch NetworkNode object → json.fuel.quantity (top-level, NOT dynamic fields)
 
 type DynNode = {
   name: { json: unknown; type: { repr: string } };
   contents: { json: unknown };
 };
 
-function extractFuelFromFields(nodes: DynNode[]): number | null {
-  for (const f of nodes) {
-    const nameStr  = JSON.stringify(f.name.json ?? "").toLowerCase();
-    const typeRepr = (f.name.type.repr ?? "").toLowerCase();
-    if (!nameStr.includes("fuel") && !typeRepr.includes("fuel")) continue;
-    const c = f.contents.json;
-    if (typeof c === "number") return c;
-    if (c && typeof c === "object") {
-      const obj = c as Record<string, unknown>;
-      const v = obj.value ?? obj.balance ?? obj.amount;
-      if (typeof v === "number") return v;
-    }
-  }
-  return null;
-}
-
 async function fetchFuel(): Promise<number | null> {
   try {
-    const owned = await gql<{
-      objects: { nodes: { address: string; asMoveObject?: { contents: { type: { repr: string } } } }[] };
-    }>(OWNED_OBJECTS_Q, { owner: WALLET, first: 50 });
+    // Step 1: get character → assembly_id
+    const charData = await gql<{
+      object: { asMoveObject: { contents: { json: Record<string, unknown> } } } | null;
+    }>(OBJECT_JSON_Q, { address: CHARACTER_ID });
 
-    const nn = owned.objects.nodes.find((n) => {
-      const repr = n.asMoveObject?.contents.type.repr ?? "";
-      return repr.toLowerCase().includes("networknode") ||
-             repr.toLowerCase().includes("network_node");
-    });
-    if (!nn) return null;
+    const charJson = charData.object?.asMoveObject?.contents?.json;
+    const meta = charJson?.metadata as Record<string, unknown> | undefined;
+    const assemblyId = meta?.assembly_id as string | undefined;
+    if (!assemblyId) { console.error("[snapshot] no assembly_id on character"); return null; }
 
-    const dyn = await gql<{
-      object: { asMoveObject: { dynamicFields: { nodes: DynNode[] } } };
-    }>(DYNAMIC_FIELDS_Q, { address: nn.address });
+    // Step 2: get NetworkNode → fuel.quantity
+    const nnData = await gql<{
+      object: { asMoveObject: { contents: { json: Record<string, unknown> } } } | null;
+    }>(OBJECT_JSON_Q, { address: assemblyId });
 
-    return extractFuelFromFields(dyn.object.asMoveObject.dynamicFields.nodes);
+    const nnJson = nnData.object?.asMoveObject?.contents?.json;
+    const fuel = nnJson?.fuel as Record<string, unknown> | undefined;
+    if (!fuel?.quantity) { console.error("[snapshot] no fuel.quantity on NetworkNode"); return null; }
+
+    const qty = parseInt(String(fuel.quantity), 10);
+    return Number.isNaN(qty) ? null : qty;
   } catch (e) {
     console.error("[snapshot] fetchFuel:", e);
     return null;
