@@ -8,7 +8,7 @@ import { JOTUNN } from "../lib/constants";
 
 const CREATED_QUERY = `
   query GetCharacterCreated($address: SuiAddress!) {
-    transactions(last: 1, filter: { affectedObject: $address }) {
+    transactions(first: 1, filter: { affectedObject: $address }) {
       nodes {
         effects { timestamp }
       }

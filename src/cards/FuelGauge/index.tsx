@@ -13,6 +13,7 @@ import { useObjectWithDynamicFields } from "../../hooks/useObjectWithDynamicFiel
 import { GlassCard } from "../../components/GlassCard";
 import { cn } from "../../lib/utils";
 import { MARTIAN_H } from "../../lib/constants";
+import { SvgIcon } from "../../components/SvgIcon";
 
 function parseFuel(json: Record<string, unknown>): { quantity: number | null; maxCapacity: number | null } {
   const fuel = json.fuel as Record<string, unknown> | null | undefined;
@@ -47,10 +48,7 @@ export function FuelGauge() {
 
         {/* Header */}
         <div className="flex items-center gap-2 mb-3 shrink-0">
-          <div
-            className="w-7 h-7 rounded-full flex items-center justify-center text-sm"
-            style={{ background: `hsla(${MARTIAN_H}, 50%, 30%, 0.5)`, border: `1px solid hsla(${MARTIAN_H}, 50%, 50%, 0.25)` }}
-          >⛽</div>
+          <SvgIcon src="/assets/fuel.svg" size={22} />
           <div>
             <div className="text-xs font-semibold tracking-widest uppercase" style={{ color: `hsla(${MARTIAN_H}, 20%, 65%, 0.55)` }}>FUEL</div>
             <div className="text-sm font-medium" style={{ color: `hsla(${MARTIAN_H}, 20%, 75%, 0.7)` }}>Network Node</div>
@@ -71,6 +69,9 @@ export function FuelGauge() {
           )}
           {!assemblyId && !isLoading && !error && (
             <div className="text-[rgba(250,250,229,0.6)] text-sm">No assembly linked.</div>
+          )}
+          {assemblyId && !isLoading && !error && !nnObject && (
+            <div className="text-[rgba(250,250,229,0.4)] text-sm">Node not found on chain.</div>
           )}
           {nnObject && (
             <>

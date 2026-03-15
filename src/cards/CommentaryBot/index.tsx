@@ -15,6 +15,7 @@ import { useKillmails } from "../../hooks/useKillmails";
 import { useCharacter } from "../../hooks/useCharacter";
 import { useTransactions } from "../../hooks/useTransactions";
 import { cn } from "../../lib/utils";
+import { SvgIcon } from "../../components/SvgIcon";
 import { MARTIAN_H } from "../../lib/constants";
 
 type EventKind = "death" | "kill" | "version" | "idle" | "fail";
@@ -179,10 +180,7 @@ export function CommentaryBot() {
         {/* Header */}
         <div className="flex items-center justify-between mb-2 shrink-0">
           <div className="flex items-center gap-2">
-            <div
-              className="w-7 h-7 rounded-full flex items-center justify-center text-sm"
-              style={{ background: `hsla(${MARTIAN_H},50%,28%,0.6)`, border: `1px solid hsla(${MARTIAN_H},50%,50%,0.25)` }}
-            >🎙️</div>
+            <SvgIcon src="/assets/commentary.svg" size={22} />
             <div>
               <div
                 className="text-xs font-semibold tracking-widest uppercase"

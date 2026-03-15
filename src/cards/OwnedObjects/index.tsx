@@ -17,6 +17,7 @@ import { useContext } from "react";
 import { useOwnedObjects } from "../../hooks/useOwnedObjects";
 import { SUISCAN_BASE, MARTIAN_H } from "../../lib/constants";
 import { GlassCard, CardExpandedContext } from "../../components/GlassCard";
+import { SvgIcon } from "../../components/SvgIcon";
 
 const H = MARTIAN_H;
 const FIELD   = { display: "flex", justifyContent: "space-between", gap: 8, padding: "2px 0", lineHeight: 1.4 } as const;
@@ -29,12 +30,7 @@ export function OwnedObjects() {
 
   const header = (
     <div className="flex items-center gap-2 shrink-0">
-      <div style={{
-        width: 28, height: 28, borderRadius: "50%",
-        background: `hsla(${H}, 50%, 30%, 0.5)`,
-        border: `1px solid hsla(${H}, 50%, 50%, 0.25)`,
-        display: "flex", alignItems: "center", justifyContent: "center",
-      }}>📦</div>
+      <SvgIcon src="/assets/object.svg" size={22} />
       <div>
         <div className="text-xs font-semibold tracking-widest uppercase" style={{ color: `hsla(${H}, 20%, 65%, 0.55)` }}>OBJECTS</div>
         <div className="text-sm font-medium" style={{ color: `hsla(${H}, 20%, 75%, 0.7)` }}>
