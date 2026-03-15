@@ -24,8 +24,34 @@ export interface TribeInfo {
   tribeUrl: string;
 }
 
-const typeCache = new Map<number, GameTypeInfo | null>();
-const tribeCache = new Map<number, TribeInfo | null>();
+export interface SolarSystemInfo {
+  id: number;
+  name: string;
+  constellationId: number;
+  regionId: number;
+  location: { x: number; y: number; z: number };
+  gateLinks: number[];
+}
+
+const typeCache       = new Map<number, GameTypeInfo | null>();
+const tribeCache      = new Map<number, TribeInfo | null>();
+const solarSystemCache = new Map<number, SolarSystemInfo | null>();
+
+export async function getSolarSystemInfo(
+  systemId: number,
+): Promise<SolarSystemInfo | null> {
+  if (solarSystemCache.has(systemId)) return solarSystemCache.get(systemId)!;
+  try {
+    const res = await fetch(`${BASE}/solarsystems/${systemId}`);
+    if (!res.ok) { solarSystemCache.set(systemId, null); return null; }
+    const data: SolarSystemInfo = await res.json();
+    solarSystemCache.set(systemId, data);
+    return data;
+  } catch {
+    solarSystemCache.set(systemId, null);
+    return null;
+  }
+}
 
 export async function getGameTypeInfo(
   typeId: number,
