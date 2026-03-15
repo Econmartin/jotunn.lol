@@ -4,6 +4,7 @@
  */
 
 import { GlassCard } from "../../components/GlassCard";
+import { SvgIcon } from "../../components/SvgIcon";
 import { MARTIAN_H } from "../../lib/constants";
 
 export function PostcardSender() {
@@ -11,15 +12,7 @@ export function PostcardSender() {
     <GlassCard accentH={MARTIAN_H} style={{ height: "100%", width: "100%" }}>
       <div className="relative z-[1] h-full flex flex-col">
         <div className="flex items-center gap-2 mb-2 shrink-0">
-          <div
-            className="w-[30px] h-[30px] rounded-full flex items-center justify-center text-sm"
-            style={{
-              background: `hsla(${MARTIAN_H},50%,28%,0.6)`,
-              border: `1px solid hsla(${MARTIAN_H},50%,50%,0.25)`,
-            }}
-          >
-            📮
-          </div>
+          <SvgIcon src="/assets/letter.svg" size={22} />
           <div>
             <div
               className="text-xs font-semibold tracking-widest uppercase"

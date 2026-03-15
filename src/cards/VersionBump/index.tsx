@@ -13,6 +13,7 @@ import { GlassCard, CardExpandedContext } from "../../components/GlassCard";
 import { useVersionBump } from "./hook";
 import { cn } from "../../lib/utils";
 import { MARTIAN_H } from "../../lib/constants";
+import { SvgIcon } from "../../components/SvgIcon";
 
 function timeAgo(ms: number): string {
   const elapsed = Date.now() - ms;
@@ -29,7 +30,7 @@ export function VersionBump() {
   const { currentVersion, previousVersion, bumped, history, totalBumps } = useVersionBump();
   const isExpanded = useContext(CardExpandedContext);
 
-  const accentColor = bumped ? "#c084fc" : "#86efac";
+  const accentColor = bumped ? "#ffb16d" : "#82220c";
 
   return (
     <GlassCard accentH={MARTIAN_H} style={{ height: "100%", width: "100%" }}>
@@ -40,8 +41,9 @@ export function VersionBump() {
           className="flex flex-col justify-center gap-1.5"
           style={{ flex: isExpanded ? "0 0 100px" : "1 1 0%" }}
         >
-          <div className="text-xs tracking-widest uppercase text-white/25">
-            Chain Version
+          <div className="flex items-center gap-2">
+            <SvgIcon src="/assets/chain.svg" size={18} />
+            <div className="text-xs tracking-widest uppercase text-white/25">Chain Version</div>
           </div>
           {isExpanded && (
             <div className="text-xs text-white/20 leading-relaxed -mt-1 mb-0.5">

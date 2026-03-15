@@ -11,6 +11,7 @@
 
 import { useState, useEffect, useContext, useId } from "react";
 import { GlassCard, CardExpandedContext } from "../../components/GlassCard";
+import { SvgIcon } from "../../components/SvgIcon";
 import { useKillmails } from "./hook";
 import { useCharacterCreated } from "../../hooks/useCharacterCreated";
 import type { Killmail } from "../../hooks/useKillmails";
@@ -123,10 +124,10 @@ function TypeBreakdown({ label, items, accentColor }: { label: string; items: Ki
     <div className="px-[10px] py-2 rounded-[6px] bg-black/20 border border-white/[0.07]">
       <div className="text-xs tracking-widest uppercase mb-1.5" style={{ color: accentColor }}>{label}</div>
       <div className="flex gap-3">
-        {[{ icon: "🚀", label: "Ships",      count: ships  },
-          { icon: "🏗️", label: "Structures", count: structs }].map(({ icon, label: l, count }) => (
+        {[{ icon: "/assets/ship.svg",      label: "Ships",      count: ships  },
+          { icon: "/assets/structure.svg", label: "Structures", count: structs }].map(({ icon, label: l, count }) => (
           <div key={l} className="flex-1 text-center">
-            <div className="text-base">{icon}</div>
+            <div className="flex justify-center"><SvgIcon src={icon} size={18} /></div>
             <div className="text-xl font-extrabold font-mono" style={{ color: accentColor }}>{count}</div>
             <div className="text-xs text-white/35">{l}</div>
           </div>

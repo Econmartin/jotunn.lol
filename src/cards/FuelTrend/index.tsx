@@ -10,6 +10,7 @@
 
 import { useContext } from "react";
 import { GlassCard, CardExpandedContext } from "../../components/GlassCard";
+import { SvgIcon } from "../../components/SvgIcon";
 import { useFuelTrend, type FuelReading } from "./hook";
 import { MARTIAN_H } from "../../lib/constants";
 
@@ -109,10 +110,7 @@ export function FuelTrend() {
 
         {/* Header */}
         <div className="flex items-center gap-2 mb-2 shrink-0">
-          <div
-            className="w-7 h-7 rounded-full flex items-center justify-center text-sm shrink-0"
-            style={{ background: `hsla(${MARTIAN_H},50%,28%,0.6)`, border: `1px solid hsla(${MARTIAN_H},50%,50%,0.25)` }}
-          >📈</div>
+          <SvgIcon src="/assets/fuel_trend.svg" size={22} />
           <div>
             <div className="text-xs font-semibold tracking-widest uppercase" style={{ color: `hsla(${MARTIAN_H},20%,65%,0.5)` }}>
               FUEL TREND
