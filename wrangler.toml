@@ -1,0 +1,15 @@
+name            = "jotunn-snapshot"
+main            = "worker/index.ts"
+compatibility_date  = "2024-09-23"
+compatibility_flags = ["nodejs_compat"]
+
+# ── Cron: snapshot every 5 minutes ───────────────────────────────────────────
+[triggers]
+crons = ["*/5 * * * *"]
+
+# ── D1 database ───────────────────────────────────────────────────────────────
+# After running `npm run worker:db:create`, paste the database_id here.
+[[d1_databases]]
+binding = "jotunn_snapshots"
+database_name = "jotunn-snapshots"
+database_id   = "af891260-b269-4d75-8422-fd920e7efcdc"

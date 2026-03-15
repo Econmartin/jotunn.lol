@@ -20,8 +20,11 @@ export const REGISTRIES = {
     "0x454a9aa3d37e1d08d3c9181239c1b683781e4087fbbbd48c935d54b6736fd05c",
 } as const;
 
-export const POLL_INTERVAL_MS = 5 * 60 * 1000; // 5 minutes
+export const POLL_INTERVAL_MS = 5 * 60 * 1000 - 1; // 4 minutes 59 seconds
 
 export const SUISCAN_BASE = "https://suiscan.xyz/testnet";
+
+/** Hue for martian-500 (#ff610a) — use as accentH for all cards. Use green/red only for binary state. */
+export const MARTIAN_H = 24;
 
 export const WEBHOOKS: string[] = [];
