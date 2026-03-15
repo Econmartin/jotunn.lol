@@ -4,8 +4,8 @@
  */
 
 import { type ReactNode } from "react";
-import { FuelGauge }        from "../cards/FuelGauge";
-import { FuelTrend }        from "../cards/FuelTrend";
+// import { FuelGauge }        from "../cards/FuelGauge";
+// import { FuelTrend }        from "../cards/FuelTrend";
 import { SurvivalStreak }   from "../cards/SurvivalStreak";
 import { TribeChangeAlert } from "../cards/TribeChangeAlert";
 import { VersionBump }      from "../cards/VersionBump";
@@ -38,15 +38,6 @@ export const SECTIONS: Section[] = [
       { id: "survival-streak",    baseFlex: 2, component: <SurvivalStreak /> },
       { id: "tribe-change-alert", baseFlex: 1, component: <TribeChangeAlert /> },
       { id: "version-bump",       baseFlex: 1, component: <VersionBump /> },
-    ],
-  },
-
-  // ── Row: kill counter + fuel gauge + fuel trend ──────────────────────────
-  {
-    type: "row",
-    cards: [
-      { id: "fuel-gauge",   baseFlex: 1, component: <FuelGauge /> },
-      { id: "fuel-trend",   baseFlex: 2, component: <FuelTrend /> },
     ],
   },
 

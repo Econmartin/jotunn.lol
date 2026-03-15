@@ -186,7 +186,7 @@
 /* ── GSAP target – keep as named class ──────────────────────────────────── */
 
 .hero-headline-strike-line {
-  position: absolute; left: 0; bottom: 0.5em;
+  position: absolute; left: 0; bottom: 0.6em;
   width: 100%; height: 2px; background: currentColor;
   transform-origin: left center; pointer-events: none;
 }

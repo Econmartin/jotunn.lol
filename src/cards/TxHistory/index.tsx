@@ -14,6 +14,7 @@
 import { useTransactions } from "../../hooks/useTransactions";
 import { SUISCAN_BASE, MARTIAN_H } from "../../lib/constants";
 import { GlassCard } from "../../components/GlassCard";
+import { SvgIcon } from "../../components/SvgIcon";
 
 const LOADING = { display: "flex", alignItems: "center", justifyContent: "center", minHeight: 80, color: "rgba(250,250,229,0.6)" } as const;
 const ERROR   = { ...LOADING, color: "#f87171" } as const;
@@ -31,12 +32,7 @@ export function TxHistory() {
     <GlassCard accentH={MARTIAN_H} style={{ height: "100%", width: "100%" }}>
       <div className="text-[#FAFAE5]" style={{ position: "relative", zIndex: 1, height: "100%", display: "flex", flexDirection: "column" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12, flexShrink: 0 }}>
-          <div style={{
-            width: 28, height: 28, borderRadius: "50%",
-            background: `hsla(${MARTIAN_H}, 50%, 30%, 0.5)`,
-            border: `1px solid hsla(${MARTIAN_H}, 50%, 50%, 0.25)`,
-            display: "flex", alignItems: "center", justifyContent: "center",
-          }}>📜</div>
+          <SvgIcon src="/assets/transactions.svg" size={22} />
           <div>
             <div className="text-xs font-semibold tracking-widest uppercase" style={{ color: `hsla(${MARTIAN_H}, 20%, 65%, 0.55)` }}>TRANSACTIONS</div>
             <div className="text-sm font-medium" style={{ color: `hsla(${MARTIAN_H}, 20%, 75%, 0.7)` }}>Tx history</div>

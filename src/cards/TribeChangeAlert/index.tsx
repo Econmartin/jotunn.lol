@@ -13,6 +13,7 @@ import { GlassCard, CardExpandedContext } from "../../components/GlassCard";
 import { useTribeChangeAlert } from "./hook";
 import { cn } from "../../lib/utils";
 import { MARTIAN_H } from "../../lib/constants";
+import { SvgIcon } from "../../components/SvgIcon";
 
 function timeAgo(ms: number): string {
   const elapsed = Date.now() - ms;
@@ -45,8 +46,9 @@ export function TribeChangeAlert() {
           className="flex flex-col justify-center gap-1.5"
           style={{ flex: isExpanded ? "0 0 150px" : "1 1 0%" }}
         >
-          <div className="text-xs tracking-widest uppercase text-white/25">
-            Tribe Allegiance
+          <div className="flex items-center gap-2">
+            <SvgIcon src="/assets/tribe.svg" size={18} />
+            <div className="text-xs tracking-widest uppercase text-white/25">Tribe Allegiance</div>
           </div>
           {isExpanded && (
             <div className="text-xs text-white/20 -mt-0.5 mb-0.5">
