@@ -1,34 +1,32 @@
 /*
  * Character Hero — READ card. useCharacter + getTribeInfo (Sui GraphQL + Datahub).
+ * Always shown in "expanded" mode inside HeroSection.
+ * Two-column: left = name + badges, right = detail rows.
  */
 
 import { useQuery } from "@tanstack/react-query";
 import { useCharacter } from "../../hooks/useCharacter";
-import { JOTUNN, SUISCAN_BASE } from "../../lib/constants";
+import { JOTUNN, SUISCAN_BASE, MARTIAN_H } from "../../lib/constants";
 import { getTribeInfo } from "../../lib/datahub";
-import { StatBadge } from "../StatBadge";
 import { GlassCard } from "../GlassCard";
 
-function Field({
-  label,
-  value,
-  mono,
-}: {
-  label: string;
-  value: string;
-  mono?: boolean;
-}) {
+const H = MARTIAN_H;
+
+function Row({ label, value, mono = false, link }: { label: string; value: string; mono?: boolean; link?: string }) {
   return (
-    <div className="card-field">
-      <span className="card-field-label">{label}</span>
-      <span
-        className="card-field-value"
-        style={
-          mono ? { fontFamily: "monospace", fontSize: "0.75rem" } : undefined
-        }
-      >
-        {value}
-      </span>
+    <div className="flex justify-between gap-2 py-[3px] border-b border-white/[0.04]">
+      <span className="text-[10px] shrink-0" style={{ color: "rgba(250,250,229,0.4)" }}>{label}</span>
+      {link ? (
+        <a href={link} target="_blank" rel="noopener noreferrer"
+           style={{ color: `hsla(${H}, 70%, 65%, 0.8)`, fontSize: "10px", textAlign: "right", wordBreak: "break-all", fontFamily: mono ? "monospace" : undefined }}>
+          {value}
+        </a>
+      ) : (
+        <span className="text-[10px] text-right break-all"
+              style={{ color: "rgba(250,250,229,0.75)", fontFamily: mono ? "monospace" : undefined }}>
+          {value}
+        </span>
+      )}
     </div>
   );
 }
@@ -37,136 +35,65 @@ export function CharacterHero() {
   const { data: character, isLoading, error } = useCharacter();
   const tribeId = character?.json.tribe_id ?? JOTUNN.tribeId;
 
-  const tribe = useQuery({
+  const { data: tribe } = useQuery({
     queryKey: ["tribe", tribeId],
     queryFn: () => getTribeInfo(tribeId),
     staleTime: Infinity,
   });
 
-  if (isLoading) {
-    return (
-      <GlassCard accentH={25} style={{ height: "100%", width: "100%" }}>
-        <div style={{ position: "relative", zIndex: 1, height: "100%", display: "flex", flexDirection: "column" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12, flexShrink: 0 }}>
-            <div style={{
-              width: 28, height: 28, borderRadius: "50%",
-              background: "hsla(210, 50%, 30%, 0.5)",
-              border: "1px solid hsla(210, 50%, 50%, 0.25)",
-              display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13,
-            }}>🧊</div>
-            <div>
-              <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", color: "hsla(210, 20%, 65%, 0.55)" }}>CHARACTER</div>
-              <div style={{ fontSize: 13, fontWeight: 500, color: "hsla(210, 20%, 75%, 0.7)" }}>Loading...</div>
-            </div>
-          </div>
-          <div className="card-loading" style={{ flex: 1 }}>Loading character data...</div>
-        </div>
-      </GlassCard>
-    );
-  }
-
-  if (error) {
-    return (
-      <GlassCard accentH={25} style={{ height: "100%", width: "100%" }}>
-        <div style={{ position: "relative", zIndex: 1, height: "100%", display: "flex", flexDirection: "column" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12, flexShrink: 0 }}>
-            <div style={{
-              width: 28, height: 28, borderRadius: "50%",
-              background: "hsla(210, 50%, 30%, 0.5)",
-              border: "1px solid hsla(210, 50%, 50%, 0.25)",
-              display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13,
-            }}>🧊</div>
-            <div>
-              <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", color: "hsla(210, 20%, 65%, 0.55)" }}>CHARACTER</div>
-              <div style={{ fontSize: 13, fontWeight: 500, color: "hsla(210, 20%, 75%, 0.7)" }}>Error</div>
-            </div>
-          </div>
-          <div className="card-error" style={{ flex: 1 }}>Failed to load: {error.message}</div>
-        </div>
-      </GlassCard>
-    );
-  }
-
-  if (!character) {
-    return (
-      <GlassCard accentH={25} style={{ height: "100%", width: "100%" }}>
-        <div style={{ position: "relative", zIndex: 1, height: "100%", display: "flex", flexDirection: "column" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12, flexShrink: 0 }}>
-            <div style={{
-              width: 28, height: 28, borderRadius: "50%",
-              background: "hsla(210, 50%, 30%, 0.5)",
-              border: "1px solid hsla(210, 50%, 50%, 0.25)",
-              display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13,
-            }}>🧊</div>
-            <div>
-              <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", color: "hsla(210, 20%, 65%, 0.55)" }}>CHARACTER</div>
-              <div style={{ fontSize: 13, fontWeight: 500, color: "hsla(210, 20%, 75%, 0.7)" }}>Not found</div>
-            </div>
-          </div>
-          <div className="card-loading" style={{ flex: 1 }}>Character not found</div>
-        </div>
-      </GlassCard>
-    );
-  }
-
-  const { json } = character;
-  const tribeName = tribe.data
-    ? `${tribe.data.name} [${tribe.data.nameShort}]`
-    : `Tribe ${json.tribe_id}`;
+  const name    = character?.json.metadata.name ?? JOTUNN.name;
+  const wallet  = character?.json.character_address ?? JOTUNN.wallet;
+  const charId  = character?.address ?? JOTUNN.characterId;
+  const itemId  = character?.json.key.item_id ?? JOTUNN.itemId;
+  const tenant  = character?.json.key.tenant ?? "stillness";
+  const taxRate = tribe ? `${(tribe.taxRate * 100).toFixed(0)}%` : "—";
 
   return (
-    <GlassCard accentH={25} style={{ height: "100%", width: "100%" }}>
-      <div style={{ position: "relative", zIndex: 1, height: "100%", display: "flex", flexDirection: "column", overflow: "auto" }}>
-        <div className="hero-header">
-          <div className="hero-name-row">
-            <h2 className="hero-name">{json.metadata.name}</h2>
-            <span className="hero-tribe">{tribeName}</span>
-          </div>
-          <div className="hero-stats">
-            <StatBadge label="VERSION" value={character.version} />
-            <StatBadge label="ITEM ID" value={json.key.item_id} />
-            <StatBadge label="TENANT" value={json.key.tenant.toUpperCase()} />
-            <StatBadge label="DYN FIELDS" value={character.dynamicFields.length} />
-          </div>
-        </div>
+    <GlassCard accentH={H} style={{ height: "100%", width: "100%" }}>
+      <div className="relative z-[1] h-full flex flex-row gap-4">
 
-        {tribe.data && (
-          <div className="tribe-detail">
-            <Field label="Tribe" value={tribe.data.name} />
-            <Field label="Tag" value={tribe.data.nameShort} />
-            <Field label="Tax Rate" value={`${(tribe.data.taxRate * 100).toFixed(0)}%`} />
-            {tribe.data.description && (
-              <Field label="Tribe Desc" value={tribe.data.description} />
-            )}
+        {/* ── Left: name + badges ───────────────────────────── */}
+        <div className="flex flex-col justify-center gap-2 shrink-0" style={{ flex: "0 0 180px" }}>
+          <div className="text-[9px] tracking-[0.12em] uppercase" style={{ color: `hsla(${H}, 20%, 60%, 0.5)` }}>
+            Character
           </div>
-        )}
+          <div className="text-[13px] font-bold leading-tight" style={{ color: "rgba(250,250,229,0.95)" }}>
+            {isLoading ? "…" : name}
+          </div>
+          {error && <div className="text-[10px] text-red-400">Failed to load</div>}
 
-        <div className="hero-body">
-          <Field label="Character ID" value={character.address} mono />
-          <Field label="Wallet" value={json.character_address} mono />
-          <Field label="Owner Cap" value={json.owner_cap_id} mono />
-          <Field label="Digest" value={character.digest} mono />
-          {json.metadata.description && (
-            <Field label="Description" value={json.metadata.description} />
+          <div className="flex gap-1 flex-wrap">
+            {[
+              { label: "STILLNESS" },
+              { label: `TAX ${taxRate}` },
+            ].map(({ label }) => (
+              <span key={label}
+                    className="text-[9px] font-bold py-px px-1.5 rounded-[3px] tracking-[0.06em] font-mono"
+                    style={{
+                      background: `hsla(${H}, 60%, 50%, 0.12)`,
+                      border: `1px solid hsla(${H}, 60%, 50%, 0.3)`,
+                      color: `hsla(${H}, 60%, 65%, 0.85)`,
+                    }}>
+                {label}
+              </span>
+            ))}
+          </div>
+
+          {tribe?.description && (
+            <div className="text-[9px] leading-[1.5] mt-1" style={{ color: "rgba(250,250,229,0.35)" }}>
+              {tribe.description}
+            </div>
           )}
         </div>
 
-        <div className="hero-links">
-          <a
-            href={`${SUISCAN_BASE}/object/${JOTUNN.characterId}`}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            View on Suiscan
-          </a>
-          <a
-            href={`${SUISCAN_BASE}/account/${JOTUNN.wallet}`}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Wallet on Suiscan
-          </a>
+        {/* ── Right: detail rows ────────────────────────────── */}
+        <div className="flex-1 min-w-0 border-l border-white/[0.07] pl-4 flex flex-col justify-center gap-0">
+          <Row label="Item ID" value={itemId} mono />
+          <Row label="Tenant"  value={tenant.toUpperCase()} mono />
+          <Row label="Wallet"  value={wallet} mono link={`${SUISCAN_BASE}/account/${wallet}`} />
+          <Row label="Char ID" value={charId} mono link={`${SUISCAN_BASE}/object/${JOTUNN.characterId}`} />
         </div>
+
       </div>
     </GlassCard>
   );
