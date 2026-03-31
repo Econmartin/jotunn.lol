@@ -1,10 +1,13 @@
 import { useState, useEffect, useRef } from "react";
+import { Routes, Route, Link } from "react-router-dom";
 import { useCharacter } from "./hooks/useCharacter";
 import { ShadowSnake } from "./components/ShadowSnake";
 import { HeroSection } from "./components/HeroSection";
 import { BentoRow, BentoPairWithTall, BentoPair, SoloTall, ROW_H, GAP } from "./components/BentoGrid";
 import { SECTIONS, sectionCardIds, getAllCards } from "./lib/layout";
 import { POLL_INTERVAL_MS } from "./lib/constants";
+import { Hub } from "./pages/Hub";
+import { Slots } from "./pages/Slots";
 const jotunnSnakeHead = "/assets/jotunn-snake.png";
 
 /** Counts down to the next poll. Resets whenever dataUpdatedAt changes. */
@@ -21,7 +24,7 @@ function usePollCountdown(dataUpdatedAt: number): string {
   return `${m}:${String(s).padStart(2, "0")}`;
 }
 
-export default function App() {
+function Dashboard() {
   const character     = useCharacter();
   const pollCountdown = usePollCountdown(character.dataUpdatedAt ?? 0);
   const [activeId, setActiveId] = useState<string | null>(null);
@@ -91,17 +94,21 @@ export default function App() {
           EVE Frontier · Stillness Testnet
         </div>
 
-        <div className="flex items-center gap-2 text-[11px] text-orange-500 font-heading tracking-[.06em]">
-          {/* Dot: green + pulsing while fetching, amber at rest — dynamic so inline */}
-          <span
-            className="inline-block shrink-0 w-1.5 h-1.5 rounded-full transition-[background,box-shadow] duration-400"
-            style={{
-              background:  character.isFetching ? "hsla(150,80%,55%,0.9)" : "hsla(30,100%,55%,0.45)",
-              boxShadow:   character.isFetching ? "0 0 6px hsla(150,80%,55%,0.6)" : "none",
-              animation:   character.isFetching ? "pulse 1s ease-in-out infinite" : "none",
-            }}
-          />
-          NEXT POLL · {character.isFetching ? "fetching…" : pollCountdown}
+        <div className="flex items-center gap-4">
+          <Link to="/hub"   className="text-[10px] font-bold tracking-[.15em] uppercase px-2 py-0.5 rounded" style={{ color: "#FF6600", border: "1px solid #FF660033" }}>HUB</Link>
+          <Link to="/slots" className="text-[10px] font-bold tracking-[.15em] uppercase px-2 py-0.5 rounded" style={{ color: "hsla(24,80%,65%,0.7)", border: "1px solid hsla(24,80%,65%,0.15)" }}>SLOTS</Link>
+          <div className="flex items-center gap-2 text-[11px] text-orange-500 font-heading tracking-[.06em]">
+            {/* Dot: green + pulsing while fetching, amber at rest — dynamic so inline */}
+            <span
+              className="inline-block shrink-0 w-1.5 h-1.5 rounded-full transition-[background,box-shadow] duration-400"
+              style={{
+                background:  character.isFetching ? "hsla(150,80%,55%,0.9)" : "hsla(30,100%,55%,0.45)",
+                boxShadow:   character.isFetching ? "0 0 6px hsla(150,80%,55%,0.6)" : "none",
+                animation:   character.isFetching ? "pulse 1s ease-in-out infinite" : "none",
+              }}
+            />
+            NEXT POLL · {character.isFetching ? "fetching…" : pollCountdown}
+          </div>
         </div>
       </header>
 
@@ -136,5 +143,15 @@ export default function App() {
         click to expand · esc to close · {SECTIONS.flatMap(sectionCardIds).length} cards
       </footer>
     </div>
+  );
+}
+
+export default function App() {
+  return (
+    <Routes>
+      <Route path="/"      element={<Dashboard />} />
+      <Route path="/hub"   element={<Hub />} />
+      <Route path="/slots" element={<Slots />} />
+    </Routes>
   );
 }

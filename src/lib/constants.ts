@@ -39,3 +39,16 @@ export const SUISCAN_BASE = "https://suiscan.xyz/testnet";
 export const MARTIAN_H = 24;
 
 export const WEBHOOKS: string[] = [];
+
+// ── DApp contracts (deployed to Stillness/testnet) ────────────────────────────
+export const EVE_COIN_TYPE =
+  "0x2a66a89b5a735738ffa4423ac024d23571326163f324f9051557617319e59d60::EVE::EVE";
+export const EVE_SCALE = 1_000_000_000n; // 10^9 decimals
+export const GAS_BUDGET = 20_000_000;
+
+export const JOTUNN_PACKAGE_ID =
+  (import.meta.env.VITE_JOTUNN_PACKAGE_ID as string | undefined) ?? "";
+export const HUB_STATE_ID =
+  (import.meta.env.VITE_HUB_STATE_ID as string | undefined) ?? "";
+export const SLOTS_HOUSE_ID =
+  (import.meta.env.VITE_SLOTS_HOUSE_ID as string | undefined) ?? "";

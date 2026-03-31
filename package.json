@@ -9,14 +9,17 @@
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
-    "worker:dev":            "wrangler dev worker/index.ts --port 3001",
-    "worker:deploy":         "wrangler deploy",
-    "worker:db:create":      "wrangler d1 create jotunn-snapshots",
-    "worker:db:migrate":     "wrangler d1 execute jotunn-snapshots --local --file=worker/schema.sql",
+    "worker:dev": "wrangler dev worker/index.ts --port 3001",
+    "worker:deploy": "wrangler deploy",
+    "worker:db:create": "wrangler d1 create jotunn-snapshots",
+    "worker:db:migrate": "wrangler d1 execute jotunn-snapshots --local --file=worker/schema.sql",
     "worker:db:migrate:remote": "wrangler d1 execute jotunn-snapshots --remote --file=worker/schema.sql",
-    "worker:snapshot":       "curl -s -X POST http://127.0.0.1:3001/api/snapshot | jq"
+    "worker:snapshot": "curl -s -X POST http://127.0.0.1:3001/api/snapshot | jq"
   },
   "dependencies": {
+    "@evefrontier/dapp-kit": "^0.1.7",
+    "@mysten/dapp-kit-react": "^2.0.1",
+    "@mysten/sui": "^2.13.2",
     "@tanstack/react-query": "^5.0.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
@@ -25,6 +28,7 @@
     "radix-ui": "^1.4.3",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "react-router-dom": "^7.13.2",
     "tailwind-merge": "^3.5.0"
   },
   "devDependencies": {
