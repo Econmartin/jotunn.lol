@@ -1,71 +1,131 @@
 /**
  * @hook useCharityDonate
- * Fetches nonprofit data from Every.org's public API.
- * No API key required for basic nonprofit lookup.
+ * Fetches project data from GlobalGiving's public API.
+ * Requires VITE_GLOBAL_GIVING_API_KEY.
  *
- * Concept: "For every kill Jotunn makes, pledge $1 to charity."
- * Shows kill count × pledge amount as the "donation meter".
+ * Concept: each time Jotunn dies, $0.01 is pledged to charity.
+ * When the pending balance reaches $10, a donation is sent (payment gateway pending).
+ * Already-sent amounts are tracked in localStorage.
  */
 
 import { useQuery } from "@tanstack/react-query";
 import { useKillmails } from "../../hooks/useKillmails";
 
-// Default charity: Doctors Without Borders (MSF)
-// Change via VITE_CHARITY_SLUG
-const CHARITY_SLUG =
-  (import.meta.env.VITE_CHARITY_SLUG as string | undefined) ?? "doctors-without-borders";
+const API_KEY    = import.meta.env.VITE_GLOBAL_GIVING_API_KEY as string | undefined;
+const PROJECT_ID = (import.meta.env.VITE_GLOBAL_GIVING_PROJECT_ID as string | undefined) ?? "10045";
 
-const PLEDGE_PER_KILL = 1; // USD per kill
+const PLEDGE_PER_DEATH  = 0.01; // USD per death
+const SEND_THRESHOLD    = 10;   // trigger a donation once pending hits $10
+const STORAGE_KEY       = "jotunn-charity-sent";
 
-export interface EveryOrgNonprofit {
-  name: string;
-  description: string;
-  tags: string[];
-  websiteUrl: string;
-  profileUrl: string;
-  logoUrl: string | null;
+const GG_BASE = "https://api.globalgiving.org/api/public/projectservice";
+
+export interface GlobalGivingProject {
+  id: number;
+  title: string;
+  summary: string;
+  goal: number;
+  funding: number;
+  numberOfDonations: number;
+  status: string;
+  organizationName: string;
+  projectLink: string;
+  imageUrl: string | null;
+  donationOptions: { amount: number; description: string }[];
 }
 
-async function fetchNonprofit(slug: string): Promise<EveryOrgNonprofit | null> {
+async function fetchProject(projectId: string): Promise<GlobalGivingProject | null> {
+  if (!API_KEY) return null;
   try {
-    const res = await fetch(`https://api.every.org/v0.2/nonprofit/${slug}`, {
-      headers: { Accept: "application/json" },
-    });
+    const res = await fetch(
+      `${GG_BASE}/projects/collection/ids?api_key=${API_KEY}&projectIds=${projectId}&v=2`,
+      { headers: { Accept: "application/json" } },
+    );
     if (!res.ok) return null;
-    const json = await res.json();
-    const np = json.data?.nonprofit;
-    if (!np) return null;
+    const json = await res.json() as {
+      response?: {
+        projects?: {
+          project?: Array<{
+            id: number;
+            title: string;
+            summary?: string;
+            longDescription?: string;
+            goal: number;
+            funding: number;
+            numberOfDonations: number;
+            status: string;
+            organization?: { name: string };
+            projectLink: string;
+            image?: { imagelink?: Array<{ url: string; size: string }> };
+            donationOptions?: { donationOption?: Array<{ amount: number; description: string }> };
+          }>;
+        };
+      };
+    };
+    const project = json.response?.projects?.project?.[0];
+    if (!project) return null;
+
+    const images = project.image?.imagelink ?? [];
+    const imgUrl =
+      images.find((i) => i.size === "medium")?.url ??
+      images.find((i) => i.size === "small")?.url ??
+      images[0]?.url ?? null;
+
     return {
-      name: np.name ?? slug,
-      description: np.descriptionLong ?? np.description ?? "",
-      tags: np.tags ?? [],
-      websiteUrl: np.websiteUrl ?? "",
-      profileUrl: `https://www.every.org/${slug}`,
-      logoUrl: np.logoUrl ?? null,
+      id: project.id,
+      title: project.title,
+      summary: project.summary ?? project.longDescription ?? "",
+      goal: project.goal,
+      funding: project.funding,
+      numberOfDonations: project.numberOfDonations,
+      status: project.status,
+      organizationName: project.organization?.name ?? "",
+      projectLink: project.projectLink,
+      imageUrl: imgUrl,
+      donationOptions: project.donationOptions?.donationOption ?? [],
     };
   } catch {
     return null;
   }
 }
 
+// ── Persistence ───────────────────────────────────────────────────────────────
+
+function loadSentAmount(): number {
+  try { return parseFloat(localStorage.getItem(STORAGE_KEY) ?? "0") || 0; }
+  catch { return 0; }
+}
+
 export function useCharityDonate() {
   const { data: killData } = useKillmails();
-  const killCount = killData?.kills.length ?? 0;
+  const deathCount = killData?.deaths.length ?? 0;
 
-  const nonprofit = useQuery({
-    queryKey: ["every-org", CHARITY_SLUG],
-    queryFn: () => fetchNonprofit(CHARITY_SLUG),
-    staleTime: Infinity,
+  const { data: project, isLoading } = useQuery({
+    queryKey: ["globalgiving-project", PROJECT_ID],
+    queryFn: () => fetchProject(PROJECT_ID),
+    staleTime: 5 * 60 * 1000,
     retry: 1,
+    enabled: !!API_KEY,
   });
 
+  const totalPledged  = parseFloat((deathCount * PLEDGE_PER_DEATH).toFixed(2));
+  const sentAmount    = loadSentAmount();
+  const pendingAmount = parseFloat(Math.max(0, totalPledged - sentAmount).toFixed(2));
+  const readyToSend   = pendingAmount >= SEND_THRESHOLD;
+  const fundingPct    = project ? Math.min(100, Math.round((project.funding / project.goal) * 100)) : null;
+
   return {
-    nonprofit: nonprofit.data ?? null,
-    isLoading: nonprofit.isLoading,
-    killCount,
-    pledgedAmount: killCount * PLEDGE_PER_KILL,
-    pledgePerKill: PLEDGE_PER_KILL,
-    donateUrl: `https://www.every.org/${CHARITY_SLUG}#donate`,
-    charitySlug: CHARITY_SLUG,
+    project: project ?? null,
+    isLoading,
+    hasKey: !!API_KEY,
+    deathCount,
+    totalPledged,
+    sentAmount,
+    pendingAmount,
+    pledgePerDeath: PLEDGE_PER_DEATH,
+    sendThreshold: SEND_THRESHOLD,
+    readyToSend,
+    projectId: PROJECT_ID,
+    fundingPct,
   };
 }
