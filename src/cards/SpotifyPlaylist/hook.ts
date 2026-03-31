@@ -169,7 +169,7 @@ export function useSpotify() {
     }
 
     (async () => {
-      const redirectUri = window.location.origin + window.location.pathname;
+      const redirectUri = (window.location.origin + window.location.pathname).replace(/\/$/, "");
       const res = await fetch("https://accounts.spotify.com/api/token", {
         method: "POST",
         headers: { "Content-Type": "application/x-www-form-urlencoded" },
@@ -264,7 +264,7 @@ export function useSpotify() {
     const verifier   = randomVerifier();
     const challenge  = b64url(await sha256(verifier));
     localStorage.setItem(LS_VERIFIER, verifier);
-    const redirectUri = window.location.origin + window.location.pathname;
+    const redirectUri = (window.location.origin + window.location.pathname).replace(/\/$/, "");
     const params = new URLSearchParams({
       client_id:             CLIENT_ID,
       response_type:         "code",
