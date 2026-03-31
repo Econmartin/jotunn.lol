@@ -217,6 +217,24 @@ export default {
       return json({ ok: true, ...result }, req);
     }
 
+    // GET /api/proxy/globalgiving?projectId=10045&key=xxx
+    // Proxies GlobalGiving public project API (works around CORS)
+    if (url.pathname === "/api/proxy/globalgiving" && req.method === "GET") {
+      const projectId = url.searchParams.get("projectId");
+      const apiKey    = url.searchParams.get("key");
+      if (!projectId || !apiKey) return json({ error: "missing projectId or key" }, req, 400);
+      try {
+        const ggRes = await fetch(
+          `https://api.globalgiving.org/api/public/projectservice/projects/collection/ids?api_key=${apiKey}&projectIds=${projectId}&v=2`,
+          { headers: { Accept: "application/json" } },
+        );
+        const data = await ggRes.json();
+        return json(data, req, ggRes.ok ? 200 : 502);
+      } catch (e) {
+        return json({ error: String(e) }, req, 502);
+      }
+    }
+
     return new Response("Not found", { status: 404 });
   },
 };

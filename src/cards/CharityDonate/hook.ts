@@ -13,12 +13,11 @@ import { useKillmails } from "../../hooks/useKillmails";
 
 const API_KEY    = import.meta.env.VITE_GLOBAL_GIVING_API_KEY as string | undefined;
 const PROJECT_ID = (import.meta.env.VITE_GLOBAL_GIVING_PROJECT_ID as string | undefined) ?? "10045";
+const WORKER_URL = (import.meta.env.VITE_WORKER_URL as string | undefined) ?? "";
 
 const PLEDGE_PER_DEATH  = 0.01; // USD per death
 const SEND_THRESHOLD    = 10;   // trigger a donation once pending hits $10
 const STORAGE_KEY       = "jotunn-charity-sent";
-
-const GG_BASE = "https://api.globalgiving.org/api/public/projectservice";
 
 export interface GlobalGivingProject {
   id: number;
@@ -35,34 +34,31 @@ export interface GlobalGivingProject {
 }
 
 async function fetchProject(projectId: string): Promise<GlobalGivingProject | null> {
-  if (!API_KEY) return null;
+  if (!API_KEY || !WORKER_URL) return null;
   try {
     const res = await fetch(
-      `${GG_BASE}/projects/collection/ids?api_key=${API_KEY}&projectIds=${projectId}&v=2`,
-      { headers: { Accept: "application/json" } },
+      `${WORKER_URL}/api/proxy/globalgiving?projectId=${projectId}&key=${API_KEY}`,
     );
     if (!res.ok) return null;
     const json = await res.json() as {
-      response?: {
-        projects?: {
-          project?: Array<{
-            id: number;
-            title: string;
-            summary?: string;
-            longDescription?: string;
-            goal: number;
-            funding: number;
-            numberOfDonations: number;
-            status: string;
-            organization?: { name: string };
-            projectLink: string;
-            image?: { imagelink?: Array<{ url: string; size: string }> };
-            donationOptions?: { donationOption?: Array<{ amount: number; description: string }> };
-          }>;
-        };
+      projects?: {
+        project?: Array<{
+          id: number;
+          title: string;
+          summary?: string;
+          longDescription?: string;
+          goal: number;
+          funding: number;
+          numberOfDonations: number;
+          status: string;
+          organization?: { name: string };
+          projectLink: string;
+          image?: { imagelink?: Array<{ url: string; size: string }> };
+          donationOptions?: { donationOption?: Array<{ amount: number; description: string }> };
+        }>;
       };
     };
-    const project = json.response?.projects?.project?.[0];
+    const project = json.projects?.project?.[0];
     if (!project) return null;
 
     const images = project.image?.imagelink ?? [];
@@ -105,7 +101,7 @@ export function useCharityDonate() {
     queryFn: () => fetchProject(PROJECT_ID),
     staleTime: 5 * 60 * 1000,
     retry: 1,
-    enabled: !!API_KEY,
+    enabled: !!API_KEY && !!WORKER_URL,
   });
 
   const totalPledged  = parseFloat((deathCount * PLEDGE_PER_DEATH).toFixed(2));
