@@ -6,9 +6,8 @@
 
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { useCurrentAccount } from "@mysten/dapp-kit-react";
-import { useConnection } from "@evefrontier/dapp-kit";
-import { useDAppKit } from "@mysten/dapp-kit-react";
+import { useCurrentAccount, useDAppKit } from "@mysten/dapp-kit-react";
+import { useConnection, dAppKit as eveAppKit } from "@evefrontier/dapp-kit";
 import { buildHubUnlockTx } from "../../lib/eve-transactions";
 import { getLargestEveCoin } from "../../lib/eve-client";
 import { suiClient } from "../../lib/eve-client";
@@ -23,45 +22,40 @@ interface HubVideo {
   duration: string;
   twitchId: string;   // VOD id (numeric) or clip slug
   type: "vod" | "clip";
-  thumbBg: string;    // gradient placeholder for blurred card
 }
 
 const VIDEOS: HubVideo[] = [
   {
     id: 0,
-    title: "WAR ADMIRAL JOTUNN — SOLO PVP HIGHLIGHTS EP.1",
+    title: "RIFTHUNTING & CHILL W/ CCP JÖTUNN — HE CAME OVER AND ONE THING LED TO ANOTHER",
     views: "420.6K views",
     duration: "24:17",
-    twitchId: "2421826601",
+    twitchId: "2729256576",
     type: "vod",
-    thumbBg: "linear-gradient(135deg, #1a0a00 0%, #3d1400 50%, #1a0800 100%)",
   },
   {
     id: 1,
-    title: "STRUCTURE KILL — WATCHING THE VAULT COLLAPSE IN REAL TIME",
+    title: "LATE NIGHT BASEBUILDING & CHILL — NOBODY EXPECTED IT TO GO THIS LONG",
     views: "69.4K views",
     duration: "08:42",
-    twitchId: "2421826601",
+    twitchId: "2723291987",
     type: "vod",
-    thumbBg: "linear-gradient(135deg, #0a0014 0%, #1e003d 50%, #0a000a 100%)",
   },
   {
     id: 2,
-    title: "FUEL CRISIS — THE 6 HOUR COUNTDOWN BEGINS",
+    title: "WHAT THE DUCK — NOBODY SAW THIS COMING IN FRONTIER",
     views: "133.7K views",
     duration: "1:02:44",
-    twitchId: "2421826601",
+    twitchId: "2702807514",
     type: "vod",
-    thumbBg: "linear-gradient(135deg, #001400 0%, #003d14 50%, #000a00 100%)",
   },
   {
     id: 3,
-    title: "HOW TO SURVIVE NEW EDEN ft. JOTUNN (GONE WRONG)",
+    title: "ONLYFANS — EXCLUSIVE CONTENT YOU CAN'T FIND ANYWHERE ELSE IN FRONTIER",
     views: "88.8K views",
     duration: "15:33",
-    twitchId: "2421826601",
-    type: "vod",
-    thumbBg: "linear-gradient(135deg, #14000a 0%, #3d0014 50%, #080014 100%)",
+    twitchId: "AmazingFunnyLapwingOMGScoots-GU5zPtiwyVbntSGt",
+    type: "clip",
   },
 ];
 
@@ -103,48 +97,39 @@ function VideoCard({
     <div className="rounded-lg overflow-hidden" style={{ border: "1px solid #FF660033", background: "#0f0800" }}>
       {/* Thumbnail / embed */}
       <div className="relative" style={{ paddingTop: "56.25%" /* 16:9 */ }}>
-        {unlocked ? (
-          <iframe
-            src={embedSrc}
-            className="absolute inset-0 w-full h-full"
-            allowFullScreen
-            frameBorder="0"
-            allow="autoplay; fullscreen"
-          />
-        ) : (
+        {/* Always render the iframe so the Twitch thumbnail loads */}
+        <iframe
+          src={embedSrc}
+          className="absolute inset-0 w-full h-full"
+          allowFullScreen
+          frameBorder="0"
+          allow="autoplay; fullscreen"
+          style={{ pointerEvents: unlocked ? "auto" : "none" }}
+        />
+
+        {/* Lock overlay — backdrop-filter blurs the iframe behind it */}
+        {!unlocked && (
           <div
-            className="absolute inset-0 flex items-center justify-center"
-            style={{ background: video.thumbBg }}
+            className="absolute inset-0 flex flex-col items-center justify-center gap-3 text-center px-4"
+            style={{ backdropFilter: "blur(12px)", background: "rgba(0,0,0,0.45)" }}
           >
-            {/* Blurred placeholder art */}
-            <div
-              className="absolute inset-0"
+            <div className="text-4xl" style={{ filter: "drop-shadow(0 0 12px #FF6600)" }}>🔒</div>
+            <button
+              onClick={() => onUnlock(video.id)}
+              disabled={pending}
+              className="font-bold tracking-[.12em] px-6 py-2.5 rounded-lg text-sm transition-all"
               style={{
-                background: video.thumbBg,
-                filter: "blur(8px)",
-                transform: "scale(1.05)",
+                background: pending ? "#552200" : "#FF6600",
+                color: "#fff",
+                border: "none",
+                cursor: pending ? "wait" : "pointer",
+                opacity: pending ? 0.7 : 1,
               }}
-            />
-            {/* Lock overlay */}
-            <div className="relative z-10 flex flex-col items-center gap-3 text-center px-4">
-              <div className="text-4xl" style={{ filter: "drop-shadow(0 0 12px #FF6600)" }}>🔒</div>
-              <button
-                onClick={() => onUnlock(video.id)}
-                disabled={pending}
-                className="font-bold tracking-[.12em] px-6 py-2.5 rounded-lg text-sm transition-all"
-                style={{
-                  background: pending ? "#552200" : "#FF6600",
-                  color: "#fff",
-                  border: "none",
-                  cursor: pending ? "wait" : "pointer",
-                  opacity: pending ? 0.7 : 1,
-                }}
-              >
-                {pending ? "PROCESSING…" : "▶ UNLOCK FOR 100 EVE"}
-              </button>
-              <div className="text-[10px]" style={{ color: "rgba(255,102,0,0.5)" }}>
-                One-time payment · Unlocks permanently
-              </div>
+            >
+              {pending ? "PROCESSING…" : "▶ UNLOCK FOR 100 EVE"}
+            </button>
+            <div className="text-[10px]" style={{ color: "rgba(255,102,0,0.5)" }}>
+              One-time payment · Unlocks permanently
             </div>
             {/* Duration badge */}
             <div
@@ -172,9 +157,9 @@ function VideoCard({
 }
 
 export function Hub() {
-  const account = useCurrentAccount();
+  const account = useCurrentAccount({ dAppKit: eveAppKit });
   const { isConnected, handleConnect, handleDisconnect } = useConnection();
-  const dAppKit = useDAppKit();
+  const dAppKit = useDAppKit(eveAppKit);
 
   const [unlockedIds, setUnlockedIds] = useState<Set<number>>(new Set());
   const [pendingId, setPendingId] = useState<number | null>(null);

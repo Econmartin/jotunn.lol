@@ -1,5 +1,5 @@
 /**
- * Void Slots — EVE-themed slot machine.
+ * Slotty Jötunn — EVE-themed slot machine.
  * Each spin costs real EVE from your wallet. Outcomes are provably fair via sui::random.
  * Winnings paid from on-chain house pool; credits tracked locally until claimed.
  */
@@ -7,7 +7,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { useCurrentAccount, useDAppKit } from "@mysten/dapp-kit-react";
-import { useConnection } from "@evefrontier/dapp-kit";
+import { useConnection, dAppKit as eveAppKit } from "@evefrontier/dapp-kit";
 import { useQuery } from "@tanstack/react-query";
 import { buildSlotSpinTx } from "../../lib/eve-transactions";
 import { getLargestEveCoin, getEveBalance } from "../../lib/eve-client";
@@ -46,8 +46,6 @@ const PAYOUT_TABLE: { combo: string; mult: string }[] = [
   { combo: "Any pair",   mult: "0.5×" },
 ];
 
-const CREDITS_KEY = "jotunn-slots-credits";
-
 // ── Symbol cell ──────────────────────────────────────────────────────────────
 
 function SymbolCell({ sym, small }: { sym: Symbol; small?: boolean }) {
@@ -69,7 +67,7 @@ function SymbolCell({ sym, small }: { sym: Symbol; small?: boolean }) {
 // ── Reel ─────────────────────────────────────────────────────────────────────
 
 function Reel({ result, spinning, delay }: { result: Symbol; spinning: boolean; delay: number }) {
-  const [displaySymbols, setDisplaySymbols] = useState<Symbol[]>([randomSymbol(), randomSymbol(), result]);
+  const [displaySymbols, setDisplaySymbols] = useState<Symbol[]>([randomSymbol(), result, randomSymbol()]);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
@@ -80,7 +78,7 @@ function Reel({ result, spinning, delay }: { result: Symbol; spinning: boolean; 
     } else {
       const stop = setTimeout(() => {
         if (intervalRef.current) clearInterval(intervalRef.current);
-        setDisplaySymbols([randomSymbol(), randomSymbol(), result]);
+        setDisplaySymbols([randomSymbol(), result, randomSymbol()]);
       }, delay);
       return () => clearTimeout(stop);
     }
@@ -111,17 +109,14 @@ function Reel({ result, spinning, delay }: { result: Symbol; spinning: boolean; 
 // ── Main page ────────────────────────────────────────────────────────────────
 
 export function Slots() {
-  const account = useCurrentAccount();
+  const account = useCurrentAccount({ dAppKit: eveAppKit });
   const { isConnected, handleConnect, handleDisconnect } = useConnection();
-  const dAppKit = useDAppKit();
+  const dAppKit = useDAppKit(eveAppKit);
 
   const [betEve, setBetEve] = useState(1);
   const [spinning, setSpinning] = useState(false);
   const [results, setResults] = useState<[Symbol, Symbol, Symbol]>([4, 4, 4]);
   const [lastPayout, setLastPayout] = useState<number | null>(null);
-  const [credits, setCredits] = useState(() =>
-    parseFloat(localStorage.getItem(CREDITS_KEY) ?? "0"),
-  );
   const [txError, setTxError] = useState<string | null>(null);
 
   const { data: eveBalanceRaw } = useQuery({
@@ -134,11 +129,6 @@ export function Slots() {
   const eveBalance = eveBalanceRaw
     ? Number(eveBalanceRaw / EVE_SCALE) + Number((eveBalanceRaw % EVE_SCALE)) / 1e9
     : null;
-
-  function persistCredits(val: number) {
-    setCredits(val);
-    localStorage.setItem(CREDITS_KEY, String(val));
-  }
 
   async function handleSpin() {
     if (!account?.address) { handleConnect(); return; }
@@ -175,7 +165,6 @@ export function Slots() {
       await new Promise((res) => setTimeout(res, 1200));
       setResults([r1, r2, r3]);
       setLastPayout(payout);
-      if (payout > 0) persistCredits(credits + payout);
     } catch (e) {
       setTxError((e as Error).message);
     } finally {
@@ -200,7 +189,7 @@ export function Slots() {
           ← DASHBOARD
         </Link>
         <div className="text-lg font-black tracking-[.15em]" style={{ color: "#FF6600" }}>
-          VOID SLOTS
+          SLOTTY JÖTUNN
         </div>
         <div className="flex items-center gap-3">
           {eveBalance !== null && (
@@ -321,18 +310,6 @@ export function Slots() {
             <div className="text-xs text-center" style={{ color: "#f87171" }}>{txError}</div>
           )}
 
-          {/* Credits */}
-          <div className="w-full flex justify-between items-center pt-2 border-t" style={{ borderColor: "rgba(255,102,0,0.1)" }}>
-            <span className="text-[10px] tracking-widest" style={{ color: "rgba(255,102,0,0.4)" }}>CREDITS</span>
-            <span className="font-bold font-mono" style={{ color: credits > 0 ? "#4ade80" : "rgba(255,255,255,0.3)" }}>
-              {credits.toFixed(2)} EVE
-            </span>
-          </div>
-          {credits > 0 && (
-            <div className="text-[9px] text-center" style={{ color: "rgba(255,102,0,0.3)" }}>
-              Manual payout — DM Jotunn to claim
-            </div>
-          )}
         </div>
 
         {/* Payout table */}

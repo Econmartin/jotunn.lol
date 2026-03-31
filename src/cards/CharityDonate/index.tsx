@@ -105,12 +105,14 @@ export function CharityDonate() {
               <>
                 {/* Project image */}
                 {project.imageUrl && (
-                  <img
-                    src={project.imageUrl}
-                    alt={project.title}
-                    className="w-full rounded-md object-cover shrink-0"
-                    style={{ maxHeight: 80, border: "1px solid rgba(255,255,255,0.08)" }}
-                  />
+                  <div className="w-full rounded-md overflow-hidden shrink-0"
+                       style={{ aspectRatio: "16/7", border: "1px solid rgba(255,255,255,0.08)" }}>
+                    <img
+                      src={project.imageUrl}
+                      alt={project.title}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
                 )}
 
                 {/* Title + org */}

@@ -100,7 +100,7 @@ export function PostcardSender() {
           <div className="flex-1 flex flex-row gap-4 min-h-0">
 
             {/* Left: milestone tracker */}
-            <div className="flex flex-col gap-2 shrink-0" style={{ flex: "0 0 140px" }}>
+            <div className="flex flex-col gap-2 shrink-0 overflow-y-auto" style={{ flex: "0 0 140px" }}>
               <div className="text-[9px] tracking-widest uppercase mb-1"
                    style={{ color: "rgba(250,250,229,0.2)" }}>
                 Milestones

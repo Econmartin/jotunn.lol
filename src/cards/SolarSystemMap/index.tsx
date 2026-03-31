@@ -46,10 +46,10 @@ function buildEmbedUrl(state: MapState): string {
   return `https://ef-map.com/embed?${params.toString()}`;
 }
 
-const makeIdleState = (systemId: string): MapState => ({ systemId, color: "blue", zoom: 3000, orbit: true, mode: "idle" });
+const makeIdleState = (systemId: string): MapState => ({ systemId, color: "orange", zoom: 3000, orbit: true, mode: "idle" });
 const IDLE_STATE = makeIdleState(HOME_SYSTEM);
 const DEATH_STATE = (sys: string): MapState => ({ systemId: sys, color: "red",    zoom: 800,  orbit: false, mode: "death" });
-const KILL_STATE  = (sys: string): MapState => ({ systemId: sys, color: "yellow", zoom: 1200, orbit: true,  mode: "kill"  });
+const KILL_STATE  = (sys: string): MapState => ({ systemId: sys, color: "orange", zoom: 1200, orbit: true,  mode: "kill"  });
 
 const modeBorderColor: Record<MapMode, string> = {
   idle:  "rgba(94,234,212,0.4)",
