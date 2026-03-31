@@ -8,6 +8,8 @@ const WORLD_PACKAGE =
   "0x28b497559d65ab320d9da4613bf2498d5946b2c0ae3597ccfda3072ce127448c";
 const CHARACTER_ID =
   "0xf2f27890d53a82558bb0a4c69680e77aeac478c851521f532077bbd0c611094a";
+const NETWORK_NODE_ID =
+  "0xf0a1d56c80a8b369fcbc56dd230380a222c085b6ca9725077d88ff048f696c7c";
 const LOCATION_REGISTRY =
   "0xc87dca9c6b2c95e4a0cbe1f8f9eeff50171123f176fbfdc7b49eef4824fc596b";
 const JOTUNN_ITEM_ID = "2112077867";
@@ -59,6 +61,7 @@ const DYNAMIC_FIELDS_Q = `
   }
 `;
 
+
 // ── Fuel extraction ───────────────────────────────────────────────────────────
 // 1. Fetch character object → metadata.assembly_id = NetworkNode address
 // 2. Fetch NetworkNode object → json.fuel.quantity (top-level, NOT dynamic fields)
@@ -70,23 +73,11 @@ type DynNode = {
 
 async function fetchFuel(): Promise<number | null> {
   try {
-    // Step 1: get character → assembly_id
-    const charData = await gql<{
-      object: { asMoveObject: { contents: { json: Record<string, unknown> } } } | null;
-    }>(OBJECT_JSON_Q, { address: CHARACTER_ID });
-
-    const charJson = charData.object?.asMoveObject?.contents?.json;
-    const meta = charJson?.metadata as Record<string, unknown> | undefined;
-    const assemblyId = meta?.assembly_id as string | undefined;
-    if (!assemblyId) { console.error("[snapshot] no assembly_id on character"); return null; }
-
-    // Step 2: get NetworkNode → fuel.quantity
     const nnData = await gql<{
       object: { asMoveObject: { contents: { json: Record<string, unknown> } } } | null;
-    }>(OBJECT_JSON_Q, { address: assemblyId });
+    }>(OBJECT_JSON_Q, { address: NETWORK_NODE_ID });
 
-    const nnJson = nnData.object?.asMoveObject?.contents?.json;
-    const fuel = nnJson?.fuel as Record<string, unknown> | undefined;
+    const fuel = nnData.object?.asMoveObject?.contents?.json?.fuel as Record<string, unknown> | undefined;
     if (!fuel?.quantity) { console.error("[snapshot] no fuel.quantity on NetworkNode"); return null; }
 
     const qty = parseInt(String(fuel.quantity), 10);
@@ -131,10 +122,23 @@ async function fetchLocation(): Promise<number | null> {
 function extractSolarSystemId(json: unknown): number | null {
   if (!json || typeof json !== "object") return null;
   const obj = json as Record<string, unknown>;
-  if (typeof obj.solar_system_id === "number") return obj.solar_system_id;
+
+  function toInt(v: unknown): number | null {
+    if (typeof v === "number" && Number.isFinite(v)) return v;
+    if (typeof v === "string") { const n = parseInt(v, 10); return isNaN(n) ? null : n; }
+    if (v && typeof v === "object") {
+      const id = (v as Record<string, unknown>).item_id;
+      if (id !== undefined) return toInt(id);
+    }
+    return null;
+  }
+
+  const direct = toInt(obj.solar_system_id);
+  if (direct !== null) return direct;
+
   if (obj.location && typeof obj.location === "object") {
-    const loc = obj.location as Record<string, unknown>;
-    if (typeof loc.solar_system_id === "number") return loc.solar_system_id;
+    const nested = toInt((obj.location as Record<string, unknown>).solar_system_id);
+    if (nested !== null) return nested;
   }
   return null;
 }

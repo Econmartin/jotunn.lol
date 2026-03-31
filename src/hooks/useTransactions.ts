@@ -38,7 +38,9 @@ export function useTransactions() {
         cursor = data.transactions.pageInfo.endCursor;
       }
 
-      return allEntries;
+      return allEntries.sort(
+        (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime(),
+      );
     },
     refetchInterval: POLL_INTERVAL_MS,
   });

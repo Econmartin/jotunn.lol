@@ -11,7 +11,9 @@
 import { useContext } from "react";
 import { GlassCard, CardExpandedContext } from "../../components/GlassCard";
 import { useFuelTrend, type FuelReading } from "./hook";
-import { MARTIAN_H } from "../../lib/constants";
+import { MARTIAN_H, FUEL_RATES, JOTUNN } from "../../lib/constants";
+
+const RATE_PER_HOUR = FUEL_RATES[JOTUNN.networkNodeFuelTypeId] ?? 1;
 
 // ── Sparkline ─────────────────────────────────────────────────────────────────
 
@@ -70,21 +72,10 @@ function Sparkline({ readings }: { readings: FuelReading[] }) {
 
 // ── Rate calculation ──────────────────────────────────────────────────────────
 
-function calcRate(readings: FuelReading[]): { perHour: number | null; hoursLeft: number | null } {
-  if (readings.length < 2) return { perHour: null, hoursLeft: null };
-
-  // Use a window of up to the last 12 readings (~1 hour) for rate
-  const window = readings.slice(-12);
-  const oldest = window[0];
-  const newest = window[window.length - 1];
-  const dtMs   = newest.ts - oldest.ts;
-  if (dtMs <= 0) return { perHour: null, hoursLeft: null };
-
-  const dFuel  = oldest.fuel - newest.fuel; // positive = burning
-  const perHour = (dFuel / dtMs) * 3_600_000;
-  const hoursLeft = perHour > 0 ? newest.fuel / perHour : null;
-
-  return { perHour, hoursLeft };
+function calcRate(readings: FuelReading[]): { perHour: number; hoursLeft: number | null } {
+  const latest = readings.length > 0 ? readings[readings.length - 1].fuel : null;
+  const hoursLeft = latest != null ? latest / RATE_PER_HOUR : null;
+  return { perHour: RATE_PER_HOUR, hoursLeft };
 }
 
 function fmtDuration(hours: number): string {
@@ -154,11 +145,9 @@ export function FuelTrend() {
                   now <span className="text-white/70">{latest.toLocaleString()}</span>
                 </span>
               )}
-              {perHour !== null && perHour > 0 && (
-                <span className="text-white/30">
-                  −{perHour.toFixed(0)}/h
-                </span>
-              )}
+              <span className="text-white/30">
+                −{RATE_PER_HOUR}/h
+              </span>
               {isExpanded && readings && (
                 <span className="ml-auto text-white/20">
                   {readings.length} pts · {Math.round((readings[readings.length - 1].ts - readings[0].ts) / 3_600_000)}h window

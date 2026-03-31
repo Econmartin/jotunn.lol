@@ -40,6 +40,19 @@ export default function App() {
     return () => window.removeEventListener("keydown", onKey);
   }, []);
 
+  // Click outside any glass card closes the active card
+  useEffect(() => {
+    if (!activeId) return;
+    let armed = false;
+    const arm = setTimeout(() => { armed = true; }, 50);
+    const handler = (e: MouseEvent) => {
+      if (!armed) return;
+      if (!(e.target as Element).closest(".glass-outer")) setActiveId(null);
+    };
+    document.addEventListener("click", handler);
+    return () => { clearTimeout(arm); document.removeEventListener("click", handler); };
+  }, [activeId]);
+
   // Torch: update directly on the DOM to avoid React re-renders every mousemove
   useEffect(() => {
     const onMove = (e: MouseEvent) => {

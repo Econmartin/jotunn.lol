@@ -16,6 +16,7 @@ import { useState, useEffect, useContext } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { GlassCard, CardExpandedContext } from "../../components/GlassCard";
 import { useKillmails } from "../../hooks/useKillmails";
+import { useWorkerLatest } from "../../hooks/useWorkerLatest";
 import { getSolarSystemInfo } from "../../lib/datahub";
 import { MARTIAN_H } from "../../lib/constants";
 const HOME_SYSTEM = (import.meta.env.VITE_HOME_SYSTEM_ID as string | undefined) ?? "30013487";
@@ -45,7 +46,8 @@ function buildEmbedUrl(state: MapState): string {
   return `https://ef-map.com/embed?${params.toString()}`;
 }
 
-const IDLE_STATE: MapState = { systemId: HOME_SYSTEM, color: "blue", zoom: 3000, orbit: true, mode: "idle" };
+const makeIdleState = (systemId: string): MapState => ({ systemId, color: "blue", zoom: 3000, orbit: true, mode: "idle" });
+const IDLE_STATE = makeIdleState(HOME_SYSTEM);
 const DEATH_STATE = (sys: string): MapState => ({ systemId: sys, color: "red",    zoom: 800,  orbit: false, mode: "death" });
 const KILL_STATE  = (sys: string): MapState => ({ systemId: sys, color: "yellow", zoom: 1200, orbit: true,  mode: "kill"  });
 
@@ -64,8 +66,19 @@ const modeButtonBorder: Record<string, string> = {
 export function SolarSystemMap() {
   const isExpanded = useContext(CardExpandedContext);
   const { data } = useKillmails();
+  const { data: workerData } = useWorkerLatest();
+
+  const workerSystemId = workerData?.solar_system_id ? String(workerData.solar_system_id) : null;
 
   const [mapState, setMapState] = useState<MapState>(IDLE_STATE);
+
+  // Sync idle state to worker's latest location snapshot
+  useEffect(() => {
+    setMapState((prev) => {
+      if (prev.mode !== "idle") return prev;
+      return makeIdleState(workerSystemId ?? HOME_SYSTEM);
+    });
+  }, [workerSystemId]);
 
   const { data: systemInfo } = useQuery({
     queryKey: ["solar-system", mapState.systemId],
@@ -84,7 +97,7 @@ export function SolarSystemMap() {
       ? [...data.kills].sort((a, b) => b.killTimestamp - a.killTimestamp)[0]
       : null;
 
-    if (!latestDeath && !latestKill) { setMapState(IDLE_STATE); return; }
+    if (!latestDeath && !latestKill) { setMapState(makeIdleState(workerSystemId ?? HOME_SYSTEM)); return; }
 
     const deathTs = latestDeath?.killTimestamp ?? 0;
     const killTs  = latestKill?.killTimestamp  ?? 0;
@@ -92,13 +105,13 @@ export function SolarSystemMap() {
     let t: ReturnType<typeof setTimeout>;
     if (deathTs >= killTs && latestDeath) {
       setMapState(DEATH_STATE(latestDeath.solarSystemId));
-      t = setTimeout(() => setMapState(IDLE_STATE), 30_000);
+      t = setTimeout(() => setMapState(makeIdleState(workerSystemId ?? HOME_SYSTEM)), 30_000);
     } else if (latestKill) {
       setMapState(KILL_STATE(latestKill.solarSystemId));
-      t = setTimeout(() => setMapState(IDLE_STATE), 30_000);
+      t = setTimeout(() => setMapState(makeIdleState(workerSystemId ?? HOME_SYSTEM)), 30_000);
     }
     return () => clearTimeout(t!);
-  }, [data]);
+  }, [data, workerSystemId]);
 
   const modeLabel: Record<MapMode, string> = {
     idle:  "Last known location",
@@ -161,7 +174,7 @@ export function SolarSystemMap() {
         {isExpanded && (
           <div className="flex gap-1.5 mt-2 shrink-0">
             {([
-              { label: "🏠 Home",       onClick: () => setMapState(IDLE_STATE),  active: mapState.mode === "idle",  borderKey: "home"  },
+              { label: "🏠 Home",       onClick: () => setMapState(makeIdleState(workerSystemId ?? HOME_SYSTEM)),  active: mapState.mode === "idle",  borderKey: "home"  },
             ] as Array<{ label: string; onClick: () => void; active: boolean; borderKey: string }>).concat(
               data?.deaths[0] ? [{ label: "💀 Last Death", onClick: () => setMapState(DEATH_STATE(data.deaths.sort((a,b)=>b.killTimestamp-a.killTimestamp)[0].solarSystemId)), active: mapState.mode === "death", borderKey: "death" }] : [],
               data?.kills[0]  ? [{ label: "⚔️ Last Kill",  onClick: () => setMapState(KILL_STATE(data.kills.sort((a,b)=>b.killTimestamp-a.killTimestamp)[0].solarSystemId)),   active: mapState.mode === "kill",  borderKey: "kill"  }] : [],

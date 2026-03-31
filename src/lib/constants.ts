@@ -3,10 +3,21 @@ export const JOTUNN = {
     "0xf2f27890d53a82558bb0a4c69680e77aeac478c851521f532077bbd0c611094a",
   wallet:
     "0x80df500f7eb9873531bd0cdc684f1dd7441a846977f560ac2a2f081ec36b261b",
+  networkNodeId:
+    "0xf0a1d56c80a8b369fcbc56dd230380a222c085b6ca9725077d88ff048f696c7c",
+  networkNodeFuelTypeId: "88335",
   itemId: "2112077867",
   tribeId: 98000430,
   name: "War Admiral Jotunn",
 } as const;
+
+/** Fuel consumption rate in units/hour, keyed by on-chain type_id */
+export const FUEL_RATES: Record<string, number> = {
+  "88335": 10,    // D1 Fuel
+  "78437": 1.11,  // EU-90 Fuel
+  "78515": 1.25,  // SOF-80 Fuel
+  "78516": 2.5,   // EU-40 Fuel
+};
 
 export const WORLD_PACKAGE_ID =
   import.meta.env.VITE_EVE_WORLD_PACKAGE_ID as string;

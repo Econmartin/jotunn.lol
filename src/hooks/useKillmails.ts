@@ -7,7 +7,7 @@
  */
 
 import { useQuery } from "@tanstack/react-query";
-import { graphqlQuery } from "../lib/graphql";
+import { graphqlQuery, TX_EVENTS_QUERY } from "../lib/graphql";
 import { JOTUNN, WORLD_PACKAGE_ID, POLL_INTERVAL_MS } from "../lib/constants";
 
 // Fallback to hardcoded Stillness package if env var not set
@@ -23,6 +23,20 @@ export interface Killmail {
   lossType: "SHIP" | "STRUCTURE";
   solarSystemId: string;  // item_id (numeric string)
   killTimestamp: number;  // unix seconds
+}
+
+interface TxEventsResult {
+  transactions: {
+    nodes: Array<{
+      digest: string;
+      effects: {
+        status: string;
+        timestamp: string;
+        events: { nodes: Array<{ contents: { json: Record<string, unknown>; type: { repr: string } }; timestamp: string }> };
+      };
+    }>;
+    pageInfo: { hasNextPage: boolean; endCursor: string | null };
+  };
 }
 
 interface RawKillmailPage {
@@ -94,11 +108,84 @@ async function fetchAllKillmails(): Promise<Killmail[]> {
   return all;
 }
 
+function parseKillmailEvent(json: Record<string, unknown>): Killmail | null {
+  try {
+    const j = json as {
+      killer_id?: { item_id: string };
+      victim_id?: { item_id: string };
+      solar_system_id?: { item_id: string };
+      loss_type?: { "@variant": string };
+      kill_timestamp?: string;
+      key?: { item_id: string };
+      id?: { item_id: string };
+    };
+    if (!j.killer_id?.item_id || !j.victim_id?.item_id) return null;
+    const killmailId =
+      j.key?.item_id ??
+      j.id?.item_id ??
+      `${j.killer_id.item_id}-${j.victim_id.item_id}-${j.kill_timestamp}`;
+    return {
+      address: "",
+      killmailId,
+      killerId: j.killer_id.item_id,
+      victimId: j.victim_id.item_id,
+      lossType: (j.loss_type?.["@variant"] ?? "SHIP") as "SHIP" | "STRUCTURE",
+      solarSystemId: j.solar_system_id?.item_id ?? "",
+      killTimestamp: parseInt(j.kill_timestamp ?? "0", 10),
+    };
+  } catch {
+    return null;
+  }
+}
+
+async function fetchKillsFromEvents(): Promise<Killmail[]> {
+  const SUFFIX = "::killmail::KillmailCreatedEvent";
+
+  async function forAddress(addr: string): Promise<Killmail[]> {
+    const kills: Killmail[] = [];
+    let after: string | null = null;
+    let pages = 0;
+    while (pages < 10) {
+      const data: TxEventsResult = await graphqlQuery<TxEventsResult>(TX_EVENTS_QUERY, {
+        address: addr,
+        first: 50,
+        after,
+      });
+      for (const tx of data.transactions.nodes) {
+        for (const ev of tx.effects.events?.nodes ?? []) {
+          if (!ev.contents.type.repr.endsWith(SUFFIX)) continue;
+          const km = parseKillmailEvent(ev.contents.json);
+          if (km) kills.push(km);
+        }
+      }
+      if (!data.transactions.pageInfo.hasNextPage) break;
+      after = data.transactions.pageInfo.endCursor;
+      pages++;
+    }
+    return kills;
+  }
+
+  const [fromWallet, fromChar] = await Promise.all([
+    forAddress(JOTUNN.wallet),
+    forAddress(JOTUNN.characterId),
+  ]);
+  return [...fromWallet, ...fromChar];
+}
+
 export function useKillmails() {
   return useQuery({
     queryKey: ["killmails", JOTUNN.itemId],
     queryFn: async () => {
-      const all = await fetchAllKillmails();
+      const [objectKills, eventKills] = await Promise.all([
+        fetchAllKillmails().catch(() => [] as Killmail[]),
+        fetchKillsFromEvents().catch(() => [] as Killmail[]),
+      ]);
+      // Object-based records come first — they win on duplicate killmailId
+      const seen = new Set<string>();
+      const all: Killmail[] = [];
+      for (const km of [...objectKills, ...eventKills]) {
+        if (!seen.has(km.killmailId)) { seen.add(km.killmailId); all.push(km); }
+      }
       const kills  = all.filter((k) => k.killerId === JOTUNN.itemId);
       const deaths = all.filter((k) => k.victimId === JOTUNN.itemId);
       return { kills, deaths, allKillmails: all };

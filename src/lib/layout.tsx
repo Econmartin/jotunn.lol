@@ -16,7 +16,10 @@ import { SpotifyPlaylist }  from "../cards/SpotifyPlaylist";
 import { CharityDonate }    from "../cards/CharityDonate";
 import { PostcardSender }   from "../cards/PostcardSender";
 import { CommentaryBot }    from "../cards/CommentaryBot";
-import { CardStub }         from "../cards/CardStub";
+import { Hub }              from "../cards/Hub";
+import { Slot }             from "../cards/Slot";
+import { MemeOps }          from "../cards/MemeOps";
+import { Inventory }        from "../cards/Inventory";
 
 export interface CardDef {
   id: string;
@@ -41,12 +44,13 @@ export const SECTIONS: Section[] = [
     ],
   },
 
-  // ── Row: kill counter + fuel gauge + fuel trend ──────────────────────────
+  // ── Row: network node + cargo inventory + fuel trend ─────────────────────
   {
     type: "row",
     cards: [
-      { id: "fuel-gauge",   baseFlex: 1, component: <FuelGauge /> },
-      { id: "fuel-trend",   baseFlex: 2, component: <FuelTrend /> },
+      { id: "fuel-gauge",  baseFlex: 1, component: <FuelGauge /> },
+      { id: "inventory",   baseFlex: 1, component: <Inventory /> },
+      { id: "fuel-trend",  baseFlex: 2, component: <FuelTrend /> },
     ],
   },
 
@@ -83,12 +87,13 @@ export const SECTIONS: Section[] = [
     ],
   },
 
-  // ── Row: Hub + Slot (coming soon) ──────────────────────────────────────
+  // ── Row: Hub + Slot + MemeOps ──────────────────────────────────────────
   {
     type: "row",
     cards: [
-      { id: "hub",  baseFlex: 1, component: <CardStub label="Hub"  icon="🔗" description="Coming soon" /> },
-      { id: "slot", baseFlex: 1, component: <CardStub label="Slot" icon="🎰" description="Coming soon" /> },
+      { id: "hub",      baseFlex: 1, component: <Hub /> },
+      { id: "slot",     baseFlex: 1, component: <Slot /> },
+      { id: "meme-ops", baseFlex: 1, component: <MemeOps /> },
     ],
   },
 ];
