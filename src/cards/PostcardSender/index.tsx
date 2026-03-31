@@ -25,7 +25,7 @@ function timeAgo(ms: number): string {
 
 export function PostcardSender() {
   const isExpanded = useContext(CardExpandedContext);
-  const { killCount, nextMilestone, sentMilestones, sent, hasKey } = usePostcardSender();
+  const { killCount, nextMilestone, sentMilestones, sent, hasKey, hasAddress } = usePostcardSender();
 
   const prevMilestone = sentMilestones.length
     ? Math.max(...sentMilestones.filter((m) => m <= killCount))
@@ -53,14 +53,14 @@ export function PostcardSender() {
             </div>
             {isExpanded && (
               <div className="text-[10px] text-white/20">
-                Kill milestones → physical mail via Lob.com
+                Kill milestones → physical mail via PostGrid
               </div>
             )}
           </div>
-          {hasKey && (
+          {hasKey && hasAddress && (
             <span className="text-[9px] font-bold px-1.5 py-0.5 rounded border shrink-0"
                   style={{ color: "#4ade80", borderColor: "#4ade8033" }}>
-              ● TEST
+              ● READY
             </span>
           )}
         </div>
@@ -90,7 +90,7 @@ export function PostcardSender() {
             <div className="text-[10px]" style={{ color: "rgba(250,250,229,0.3)" }}>
               {sent.length > 0
                 ? `${sent.length} postcard${sent.length === 1 ? "" : "s"} sent`
-                : hasKey ? "Watching for first kill milestone…" : "Add VITE_LOB_TEST_API_KEY to enable"}
+                : (!hasKey || !hasAddress) ? "Add VITE_POSTGRID_API_KEY + address vars to enable" : "Watching for first kill milestone…"}
             </div>
           </div>
         )}

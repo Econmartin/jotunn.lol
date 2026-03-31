@@ -91,7 +91,7 @@ export function FuelTrend() {
   const { data: readings, isLoading, error } = useFuelTrend(isExpanded ? 576 : 288);
 
   const latest     = readings && readings.length > 0 ? readings[readings.length - 1].fuel : null;
-  const { perHour, hoursLeft } = readings ? calcRate(readings) : { perHour: null, hoursLeft: null };
+  const { hoursLeft } = readings ? calcRate(readings) : { hoursLeft: null };
   const hasData    = readings && readings.length > 0;
 
   return (
