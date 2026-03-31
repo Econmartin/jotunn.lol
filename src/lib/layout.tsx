@@ -69,21 +69,18 @@ export const SECTIONS: Section[] = [
     ],
   },
 
-  // ── Row: spotify + charity + postcard ────────────────────────────────────
+  // ── Pair: spotify + charity + postcard (top) / commentary (bottom) ──────
   {
-    type: "row",
-    cards: [
-      { id: "spotify-playlist", baseFlex: 1, component: <SpotifyPlaylist /> },
-      { id: "charity-donate",   baseFlex: 1, component: <CharityDonate /> },
-      { id: "postcard-sender",  baseFlex: 1, component: <PostcardSender /> },
-    ],
-  },
-
-  // ── Row: commentary bot ────────────────────────────────────────────────
-  {
-    type: "row",
-    cards: [
-      { id: "commentary-bot", baseFlex: 1, component: <CommentaryBot /> },
+    type: "pair",
+    rows: [
+      [
+        { id: "spotify-playlist", baseFlex: 1, component: <SpotifyPlaylist /> },
+        { id: "charity-donate",   baseFlex: 1, component: <CharityDonate /> },
+        { id: "postcard-sender",  baseFlex: 1, component: <PostcardSender /> },
+      ],
+      [
+        { id: "commentary-bot", baseFlex: 1, component: <CommentaryBot /> },
+      ],
     ],
   },
 
