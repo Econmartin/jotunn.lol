@@ -33,8 +33,22 @@ const TO_ZIP     = import.meta.env.VITE_POSTGRID_TO_ZIP     as string | undefine
 const TO_COUNTRY = import.meta.env.VITE_POSTGRID_TO_COUNTRY as string | undefined;
 
 const POSTGRID_BASE = "https://api.postgrid.com/print-mail/v1";
-const STORAGE_KEY   = "jotunn-postcards";
-const MILESTONES    = [1, 5, 10, 25, 50];
+const STORAGE_KEY = "jotunn-postcards";
+const MILESTONES  = [1, 5, 10, 25, 50];
+
+function isLastDayOfMonth(): boolean {
+  const now = new Date();
+  const tomorrow = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
+  return tomorrow.getMonth() !== now.getMonth();
+}
+
+function sentThisMonth(records: PostcardRecord[]): boolean {
+  const now = new Date();
+  return records.some((r) => {
+    const d = new Date(r.sentAt);
+    return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+  });
+}
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -119,7 +133,7 @@ export async function sendMilestonePostcard(
     record.error = "Set VITE_POSTGRID_API_KEY to enable sending";
     return record;
   }
-  if (!TO_NAME || !TO_LINE1 || !TO_CITY || !TO_STATE || !TO_ZIP || !TO_COUNTRY) {
+  if (!TO_NAME || !TO_LINE1 || !TO_CITY || !TO_ZIP || !TO_COUNTRY) {
     record.error = "Set VITE_POSTGRID_TO_* address env vars";
     return record;
   }
@@ -139,7 +153,7 @@ export async function sendMilestonePostcard(
           lastName:  TO_NAME.split(" ").slice(1).join(" ") || undefined,
           addressLine1: TO_LINE1,
           city: TO_CITY,
-          provinceOrState: TO_STATE,
+          ...(TO_STATE ? { provinceOrState: TO_STATE } : {}),
           postalOrZip: TO_ZIP,
           countryCode: TO_COUNTRY,
         },
@@ -182,20 +196,33 @@ export function usePostcardSender() {
   const sentMilestones = sent.map((r) => r.milestone);
   const prevCountRef = useRef<number | null>(null);
 
-  // Auto-send on milestone
+  // Auto-send: on kill milestone OR last day of month — max once per month
   useEffect(() => {
     if (prevCountRef.current === null) {
       prevCountRef.current = killCount;
+      // Check end-of-month trigger on load too
+      if (isLastDayOfMonth() && !sentThisMonth(sent)) {
+        sendMilestonePostcard(killCount, kills);
+      }
       return;
     }
-    if (killCount === prevCountRef.current) return;
+
+    const prevCount = prevCountRef.current;
     prevCountRef.current = killCount;
 
-    const hit = MILESTONES.find((m) => m === killCount && !sentMilestones.includes(m));
-    if (!hit) return;
+    if (sentThisMonth(sent)) return;
 
-    sendMilestonePostcard(killCount, kills);
-  }, [killCount, kills, sentMilestones]);
+    // Milestone hit
+    if (killCount > prevCount) {
+      const hit = MILESTONES.find((m) => m <= killCount && m > prevCount);
+      if (hit) { sendMilestonePostcard(killCount, kills); return; }
+    }
+
+    // Last day of month
+    if (isLastDayOfMonth()) {
+      sendMilestonePostcard(killCount, kills);
+    }
+  }, [killCount, kills, sent]);
 
   const nextMilestone = MILESTONES.find((m) => !sentMilestones.includes(m) && m >= killCount) ?? null;
 
@@ -206,6 +233,6 @@ export function usePostcardSender() {
     sentMilestones,
     sent,
     hasKey: !!POSTGRID_KEY,
-    hasAddress: !!(TO_NAME && TO_LINE1 && TO_CITY && TO_STATE && TO_ZIP && TO_COUNTRY),
+    hasAddress: !!(TO_NAME && TO_LINE1 && TO_CITY && TO_ZIP && TO_COUNTRY),
   };
 }

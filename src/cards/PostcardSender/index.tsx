@@ -151,11 +151,6 @@ export function PostcardSender() {
                 </div>
               </div>
 
-              {!hasKey && (
-                <div className="text-[9px] text-amber-400/50 leading-snug">
-                  Add VITE_LOB_TEST_API_KEY to send postcards
-                </div>
-              )}
             </div>
 
             {/* Right: sent log */}
