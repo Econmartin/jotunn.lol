@@ -10,7 +10,7 @@ import { useCurrentAccount, useDAppKit } from "@mysten/dapp-kit-react";
 import { useConnection, dAppKit as eveAppKit } from "@evefrontier/dapp-kit";
 import { useQuery } from "@tanstack/react-query";
 import { buildSlotSpinTx } from "../../lib/eve-transactions";
-import { getLargestEveCoin, getEveBalance } from "../../lib/eve-client";
+import { getLargestEveCoin, getEveBalance, suiClient } from "../../lib/eve-client";
 import { EVE_SCALE } from "../../lib/constants";
 
 // ── Symbols ──────────────────────────────────────────────────────────────────
@@ -119,7 +119,7 @@ export function Slots() {
   const [lastPayout, setLastPayout] = useState<number | null>(null);
   const [txError, setTxError] = useState<string | null>(null);
 
-  const { data: eveBalanceRaw } = useQuery({
+  const { data: eveBalanceRaw, refetch: refetchBalance } = useQuery({
     queryKey: ["eve-balance", account?.address],
     queryFn: () => getEveBalance(account!.address),
     enabled: !!account?.address,
@@ -145,18 +145,25 @@ export function Slots() {
       const tx = buildSlotSpinTx(coin.id, betEve);
       const result = await dAppKit.signAndExecuteTransaction({ transaction: tx });
 
-      // Parse SpinResult event from tx effects
-      const events = (result as { events?: Array<{ type: string; parsedJson?: { reel1?: number; reel2?: number; reel3?: number; payout?: string } }> }).events ?? [];
-      const spinEvent = events.find((e) => e.type?.includes("::slots::SpinResult"));
+      // signAndExecuteTransaction never returns events — fetch them separately
+      const digest = (result as { Transaction?: { digest: string }; FailedTransaction?: { digest: string } }).Transaction?.digest
+        ?? (result as { Transaction?: { digest: string }; FailedTransaction?: { digest: string } }).FailedTransaction?.digest
+        ?? (result as { digest?: string }).digest ?? "";
+
       let r1: Symbol, r2: Symbol, r3: Symbol, payout: number;
 
-      if (spinEvent?.parsedJson) {
-        r1 = (spinEvent.parsedJson.reel1 ?? 4) as Symbol;
-        r2 = (spinEvent.parsedJson.reel2 ?? 4) as Symbol;
-        r3 = (spinEvent.parsedJson.reel3 ?? 4) as Symbol;
-        payout = Number(spinEvent.parsedJson.payout ?? 0) / 1e9;
+      if (digest) {
+        const txBlock = await suiClient.getTransactionBlock({
+          digest,
+          options: { showEvents: true },
+        });
+        const spinEvent = (txBlock.events ?? []).find((e: { type: string }) => e.type?.includes("::slots::SpinResult"));
+        const pj = (spinEvent as { parsedJson?: { reel1?: number; reel2?: number; reel3?: number; payout?: string } } | undefined)?.parsedJson;
+        r1 = ((pj?.reel1 ?? 4) as Symbol);
+        r2 = ((pj?.reel2 ?? 4) as Symbol);
+        r3 = ((pj?.reel3 ?? 4) as Symbol);
+        payout = Number(pj?.payout ?? 0) / 1e9;
       } else {
-        // Fallback: client-side RNG (event parsing failed)
         r1 = randomSymbol(); r2 = randomSymbol(); r3 = randomSymbol();
         payout = calcClientPayout(r1, r2, r3, betEve);
       }
@@ -165,6 +172,7 @@ export function Slots() {
       await new Promise((res) => setTimeout(res, 1200));
       setResults([r1, r2, r3]);
       setLastPayout(payout);
+      refetchBalance();
     } catch (e) {
       setTxError((e as Error).message);
     } finally {
